@@ -6,7 +6,7 @@ Config { font    = "xft:Inconsolata Nerd Font:pixelsize=12:antialias=true:hintin
        , additionalFonts = [ "xft:Hack:pixelsize=13" ]
        , bgColor = "#black"
        , fgColor = "#00acc1"
-       -- On the Top, 98% screen width
+       -- On the Top, 1000% screen width
        , position = Top
        , lowerOnStart = True , hideOnStart = False
        , allDesktops = True
@@ -64,8 +64,8 @@ Config { font    = "xft:Inconsolata Nerd Font:pixelsize=12:antialias=true:hintin
 
                       -- Runs a standard shell command 'uname -r' to get kernel version
                     -- , Run Com "uname" ["-r"] "ker" 0
-                    , Run Kbd            [ ("de" , "<fc=#00008B>DE</fc>")
-                             , ("us"         , "<fc=#8B0000>US</fc>")
+                    , Run Kbd            [ ("de" , "<fc=#FFFFFF>DE</fc>")
+                             , ("us"         , "<fc=#FFFFFF>US</fc>")
                              ]
 
                       -- Prints out the left side items such as workspaces, layout, etc.
@@ -75,5 +75,5 @@ Config { font    = "xft:Inconsolata Nerd Font:pixelsize=12:antialias=true:hintin
        , sepChar = "%"
        , alignSep = "}{"
        --- , template = " <icon=haskell_20.xpm/> <fc=#666666>|</fc> %UnsafeStdinReader% }{ <fc=#b3afc2> %ker% </fc><fc=#666666>| </fc><fc=#f57900>gpu: %gpu%°C cpu: %ctemp%°C </fc><fc=#666666>| </fc><fc=#ff5252>%cpu% </fc><fc=#666666>| </fc><fc=#ffc135>%memory% </fc><fc=#666666>| </fc><fc=#16a085>%disku% </fc><fc=#666666>| </fc><fc=#ff5c79> updates: %check%</fc><fc=#666666>| </fc><fc=#42a5f5>%alsa:pulse:Master%</fc><fc=#666666>| </fc>"
-           , template = " <icon=haskell_20.xpm/> %UnsafeStdinReader% }{ <fc=#16a085><action=`~/.scripts/rofi_wifi_menu.sh`>%dynnetwork%</action> </fc> | <icon=battery.xpm/> %battery% <fc=#666666>|<icon=keyboard.xpm/></fc><action=`~/.scripts/Toggle_Keymap.sh`>%kbd%</action><fc=#666666>|</fc> <fc=#42a5f5>%alsa:pulse:Master%</fc><fc=#666666>| </fc><fc=#00acc1>%date%</fc>%trayerpad%"
+           , template = " <icon=haskell_20.xpm/> %UnsafeStdinReader% }{ <fc=#16a085><action=`~/.scripts/rofi_wifi_menu.sh`>%dynnetwork%</action> </fc> | <action=`xfce4-power-manager-settings`><icon=battery.xpm/> %battery% </action><fc=#666666>|<icon=keyboard.xpm/></fc><action=`~/.scripts/Toggle_Keymap.sh`>%kbd%</action><fc=#666666>|</fc> <fc=#42a5f5>%alsa:pulse:Master%</fc><fc=#666666>| </fc><fc=#00acc1>%date%</fc>%trayerpad%"
        }

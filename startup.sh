@@ -41,20 +41,20 @@ fi
 # fi
 
 # Wallpaper
-# if [ -z "$(pgrep nitrogen)" ] ; then
-#    nitrogen --restore &
-# fi
+if [ -z "$(pgrep nitrogen)" ] ; then
+   nitrogen --restore &
+fi
 
 
 # Screensaver
-if [ -z "$(pgrep xscreensaver)" ] ; then
-    xscreensaver -no-splash &
-fi
+# if [ -z "$(pgrep xscreensaver)" ] ; then
+#    xscreensaver -no-splash &
+# fi
 
-# compton
-if [ -z "$(pgrep picom)" ] ; then
-    picom -b
-fi
+# picom
+# if [ -z "$(pgrep picom)" ] ; then
+#     picom -c -b
+# fi
 
 # Network Applet
 if [ -z "$(pgrep nm-applet)" ] ; then
@@ -62,24 +62,17 @@ if [ -z "$(pgrep nm-applet)" ] ; then
 fi
 
 # Google Drive
-if [ -z "$(pgrep insync)" ] ; then
-    insync start &
-fi
+# if [ -z "$(pgrep insync)" ] ; then
+#     insync start &
+# fi
 
 if [ -z "$(pgrep ibus-daemon)" ] ; then
     ibus-daemon -drx
 fi
 
-if [ -z "$(pgrep polybar)" ] ; then
-    polyar example &
-fi
 
 if [ -z "$(pgrep dunst)" ] ; then
     dunst &
 fi
 
 # xbindkeys
-xbindkeys
-
-
-feh --bg-center ~/.xmonad/1920x1200.jpg 
