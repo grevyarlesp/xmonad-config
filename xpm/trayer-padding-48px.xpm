@@ -1,0 +1,14 @@
+/* XPM */
+static char * trayer_pad_xpm[] = {
+/* This XPM icon is used for padding in xmobar to */
+/* leave room for trayer-srg. It is dynamically   */
+/* updated by by trayer-pad-icon.sh which is run  */
+/* by xmobar.                                     */
+/* Created: Thu Nov 26 11:41:05 PM +07 2020 */
+/* <w/cols>  <h/rows>  <colors>  <chars per pixel> */
+"48 1 1 1",
+/* Colors (none: transparent) */
+". c none",
+/* Pixels */
+"................................................"
+};
