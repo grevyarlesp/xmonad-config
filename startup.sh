@@ -41,9 +41,9 @@ fi
 # fi
 
 # Wallpaper
-if [ -z "$(pgrep nitrogen)" ] ; then
-   nitrogen --restore &
-fi
+# if [ -z "$(pgrep nitrogen)" ] ; then
+   # nitrogen --restore &
+# fi
 
 
 # Screensaver
@@ -68,6 +68,8 @@ fi
 
 if [ -z "$(pgrep ibus-daemon)" ] ; then
     ibus-daemon -drx
+else 
+    killall ibus-daemon && ibus-daemon -drx
 fi
 
 
@@ -76,3 +78,4 @@ if [ -z "$(pgrep dunst)" ] ; then
 fi
 
 # xbindkeys
+

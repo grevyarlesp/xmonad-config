@@ -1,21 +1,26 @@
--- xmonad config used by Malcolm MD
--- https://github.com/randomthought/xmonad-config
+-- xmonad config used by k4l1brx
 
 import System.IO
+import Data.Monoid
 import System.Exit
--- import System.Taffybar.Hooks.PagerHints (pagerHints)
-
 import qualified Data.List as L
+import XMonad.Util.Font
 
-import XMonad
+import XMonad hiding ( (|||) )
 import XMonad.Actions.Navigation2D
 import XMonad.Actions.UpdatePointer
 import XMonad.Hooks.DynamicLog
 import XMonad.Util.SpawnOnce 
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.ManageHelpers
+import qualified XMonad.Actions.FlexibleManipulate as Flex
+import XMonad.Layout.DecorationMadness
+
 import XMonad.Hooks.SetWMName
 import XMonad.Hooks.EwmhDesktops (ewmh)
+import XMonad.Hooks.Place
+
+import XMonad.Layout hiding ( (|||) )
 import XMonad.Layout.TabBarDecoration
 import XMonad.Layout.Gaps
 import XMonad.Layout.Fullscreen
@@ -25,8 +30,11 @@ import XMonad.Layout.NoBorders
 -- Layouts 
 import XMonad.Layout.Tabbed
 import XMonad.Layout.SimplestFloat
+import XMonad.Layout.SimpleFloat
+import XMonad.Layout.WindowArranger
 import XMonad.Layout.ThreeColumns
-
+import XMonad.Layout.LayoutCombinators
+import XMonad.Layout.Named
 --- Layout Modifiers 
 import XMonad.Layout.LimitWindows (limitWindows, increaseLimit, decreaseLimit)
 
@@ -55,7 +63,8 @@ import qualified XMonad.Actions.TreeSelect as TS
 import XMonad.Hooks.WorkspaceHistory
 import qualified XMonad.StackSet as W
 
-
+import XMonad.Actions.FloatSnap
+import XMonad.Actions.Promote
 
 ----------------------------mupdf--------------------------------------------
 -- Terminimport XMonad.Hooks.EwmhDesktopsal
@@ -82,23 +91,21 @@ myLauncher = "~/.scripts/rofi_app_launcher.sh"
 
 
 -----------------------------------------------------------------------
---
-
-
 ------------------------------------------------------------------------
 -- Workspaces
 -- The default number of workspaces (virtual screens) and their names.
 --
--- myWorkspaces = ["1: term","2: web","3: code","4: media"] ++ map show [5..9]
+-- myWorkspaces = ["1: term","2: web","3: "","4: media"] ++ map show [5..9]
 
 xmobarEscape :: String -> String
 xmobarEscape = concatMap doubleLts
   where
         doubleLts '<' = "<<"
         doubleLts x   = [x]
+
 myWorkspaces :: [String]
 myWorkspaces = clickable . map xmobarEscape
-               $ ["1. main", "2. web", "3. code", "4. docs", "5. files", "6. chat", "7. write", "8. edit", "9. watch"]
+               $ ["1. main", "2. web", "3. docs", "4. code", "5. files", "6. chat", "7. write", "8. edit", "9. watch"]
   where
         clickable l = [ "<action=xdotool key super+" ++ show n ++ ">" ++ ws ++ "</action>" |
                       (i,ws) <- zip [1..9] l,
@@ -148,15 +155,20 @@ myManageHook = composeAll
 -- The available layouts.  Note that each layout is separated by |||,
 -- which denotes layout choice.
 
-outerGaps    = 2
+outerGaps    = 15
 myGaps       = gaps [(U, outerGaps), (R, outerGaps), (L, outerGaps), (D, outerGaps)]
 addSpace     = renamed [CutWordsLeft 2] . spacing gap
 tab          =  avoidStruts
                $ renamed [Replace "Tabbed"]
                --- $ addTopBar
                --- $ addTabsBottomAlways
-               $ tabbed shrinkText myTabTheme
+                -- $ addTabsBottomAlways shrinkText myTabTheme tabbed
+               $ tabbedBottomAlways shrinkText myTabTheme
 
+myFloat = windowArrange
+          $ renamed [Replace "Floating"]
+          $ tabBar shrinkText myTabTheme Bottom (gaps[(D, 18)] $ (simpleFloat' shrinkText myTabTheme)
+          -- $ floatDefault shrinkText myTabTheme
 
 -- (renamed [CutWordsLeft 1]
 --                   $ addTopBar
@@ -167,27 +179,23 @@ tab          =  avoidStruts
 --                   $ myGaps
 --                   $ addSpace (BSP.emptyBSP)
 --                 )
---
-
 
 layouts      = tab ||| avoidStruts (
-                (
-                  --- $ addTopBar
-                  windowNavigation
-                  $ renamed [Replace "3C"]
-                  $ addTabs shrinkText myTabTheme
+                  (
+                  -- addTopBar
+                  renamed [Replace "3C"]
+                  $ windowNavigation
                   $ addSpace
-                  $ ThreeColMid 1 (3/100) (1/2) 
+                  -- $ myGaps
+                  $ tabBar shrinkText myTabTheme Bottom (gaps[(D, 18)] $ ThreeColMid 1 (3/100) (1/2))
+                  -- $ renamed [CutWordsLeft 2]
                 ) ||| (
                   --- $ addTopBar
-                  --
                   windowNavigation
                   $ renamed [Replace "Grid"]
-                  $ addSpace
-                  $ addTabs shrinkText myTabTheme
-                  $ Grid 
+                  -- $ addSpace
+                  $  tabBar shrinkText myTabTheme Bottom (gaps [(D, 18)] $ Grid)) ||| myFloat
                   )
-                )
 
 myLayout    = smartBorders
               $ mkToggle (NOBORDERS ?? FULL ?? EOT)
@@ -207,16 +215,15 @@ myNav2DConf = def
                                   ]
     }
 -------
--- Tree 
---
---
---
+-- Tree Menu
 treeselectAction :: TS.TSConfig (X ()) -> X ()
 treeselectAction myMenu = TS.treeselectAction myMenu
   [
     Node (TS.TSNode "Session" "Session" (return())) 
      [
        Node(TS.TSNode "Lock" "Lock the system" (spawn "dm-tool switch-to-greeter")) []
+       , Node(TS.TSNode "Suspend" "Suspend" (spawn "systemctl suspend")) []
+       , Node(TS.TSNode "Logout" "logout" (io (exitWith ExitSuccess))) []
        , Node(TS.TSNode "Shutdown" "Poweroff the system" (spawn "systemctl poweroff")) []
      ]
    , Node (TS.TSNode "Brightness" "Sets screen brightness using xbacklight" (return ()))
@@ -330,11 +337,15 @@ unfocusColor = base02
 
 -- myFont      = "-*-Zekton-medium-*-*-*-*-160-*-*-*-*-*-*"
 -- myBigFont   = "-*-Zekton-medium-*-*-*-*-240-*-*-*-*-*-*"
-myFont      = "xft:Hack Nerd Font:size=9:bold:antialias=true"
-myBigFont   = "xft:Hack Nerd Font:size=9:bold:antialias=true"
-myWideFont  = "xft:Hack Nerd Font:"
-            ++ "style=Regular:pixelsize=180:hinting=true"
+-- myFont      = "xft:Inconsolata Nerd Font:size=9:bold:antialias=true"
+-- myBigFont   = "xft:Inconsolata Nerd Font:size=9:bold:antialias=true"
+-- myWideFont  = "xft:Inconsolata Nerd Font:"
+--             ++ "style=Regular:pixelsize=180:hinting=true"
 
+myFont      = "Utf8:JetBrains Mono:size=9:bold:antialias=true"
+myBigFont   = "Utf8:JetBrains Mono:size=9:bold:antialias=true"
+myWideFont  = "Utf8:JetBrains Mono:"
+            ++ "style=Regular:pixelsize=180:hinting=true"
 -- this is a "fake title" used as a highlight bar in lieu of full borders
 -- (I find this a cleaner and less visually intrusive solution)
 topBarTheme = def
@@ -351,16 +362,17 @@ topBarTheme = def
     , decoHeight            = topbar
     }
 
---- addTopBar =  noFrillsDeco shrinkText topBarTheme
+-- addTopBar =  noFrillsDeco shrinkText topBarTheme
 
 myTabTheme = def
-    { fontName              = myFont
-    , activeColor           = active
-    , inactiveColor         = base02
+    { fontName = "xft:Noto Sans Mono:pixelsize=12:antialias=true"
+    , activeColor           = base02
+    , inactiveColor         = "#000000"
     , activeBorderColor     = active
     , inactiveBorderColor   = base02
-    , activeTextColor       = base03
-    , inactiveTextColor     = base00
+    , activeTextColor       = "#FFFFFF"
+    , inactiveTextColor     = "#FFFFFF"
+    , decoHeight            = 18
     }
 
 ------------------------------------------------------------------------
@@ -371,6 +383,7 @@ myTabTheme = def
 -- ("right alt"), which does not conflict with emacs keybindings. The
 -- "windows key" is usually mod4Mask.
 --
+
 myModMask = mod4Mask
 altMask = mod1Mask
 
@@ -414,6 +427,7 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
      spawn "~/.scripts/Toggle_Keymap.sh")
   -- Toggle current focus window to fullscreen
   , ((modMask, xK_f), sendMessage $ Toggle FULL)
+  -- , ((modMask, xK_s), sendMessage $ JumpToLayout "Tabbed")
 
   -- Mute volume.
   , ((0, xF86XK_AudioMute),
@@ -578,6 +592,25 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
   -- , ((modMask .|. shiftMask,                 xK_n     ), sendMessage BSP.MoveNode)
   ]
 
+  ++ 
+
+  [
+      ((modMask  .|. controlMask              , xK_s    ), sendMessage  Arrange         )
+      , ((modMask.|. controlMask              , xK_Left ), sendMessage (MoveLeft      value))
+      , ((modMask.|. controlMask              , xK_Right), sendMessage (MoveRight     value))
+      , ((modMask.|. controlMask              , xK_Down ), sendMessage (MoveDown      value))
+      , ((modMask.|. controlMask              , xK_Up   ), sendMessage (MoveUp        value))
+      , ((modMask.|. shiftMask, xK_Left ), sendMessage (IncreaseLeft  value))
+      , ((modMask.|. shiftMask, xK_Right), sendMessage (IncreaseRight value))
+      , ((modMask.|. controlMask .|. shiftMask, xK_Left ), sendMessage (DecreaseLeft  value))
+      , ((modMask.|. controlMask .|. shiftMask, xK_Right), sendMessage (DecreaseRight value))
+      , ((modMask.|. controlMask .|. shiftMask, xK_Down ), sendMessage (DecreaseDown  value))
+      , ((modMask.|. controlMask .|. shiftMask, xK_Up   ), sendMessage (DecreaseUp   value))
+  ] 
+  where 
+    value :: Int
+    value = 50
+
 ------------------------------------------------------------------------
 -- Mouse bindings
 --
@@ -589,13 +622,15 @@ myFocusFollowsMouse = True
 myMouseBindings (XConfig {XMonad.modMask = modMask}) = M.fromList $
   [
     -- mod-button1, Set the window to floating mode and move by dragging
-    ((modMask, button3),
-     (\w -> focus w >> mouseMoveWindow w))
-
+    -- ((modMask, button3),
+    ((modMask .|. controlMask, button1),
+      (\w -> focus w >> Flex.mouseWindow Flex.resize w))
+    , ((modMask, button1),
+      (\w -> focus w >> mouseMoveWindow w >> ifClick (snapMagicMove (Just 50) (Just 50) w)))
+         -- (\w -> focus w >> (withFocused $ windows . W.sink)))
     -- mod-button2, Raise the window to the top of the stack
     -- , ((modMask, button2),
     --       (\w -> focus w >> windows W.swapMaster))
-
     -- mod-button3, Set the window to floating mode and resize by dragging
     , ((modMask, button2),
        (\w -> focus w >> mouseResizeWindow w))
@@ -624,7 +659,9 @@ myMouseBindings (XConfig {XMonad.modMask = modMask}) = M.fromList $
 -- By default, do nothing.
 myStartupHook = do
   setWMName "Xmonad"
-  spawn     "bash ~/.xmonad/startup.sh"
+  spawn     "~/.xmonad/startup.sh"
+
+  spawn     "picom -cb"
   setDefaultCursor xC_left_ptr
 
 
@@ -633,11 +670,15 @@ myStartupHook = do
 --
 
 main = do
-  
+
+  spawn "feh --bg-center ~/Pictures/My_Wallpapers/wallhaven-zmjd7o_1366x768.png"
+  spawn     "~/.xmonad/startup.sh"
+  spawn     "nitrogen --restore"
   -- spawn "feh --bg-center ~/.xmonad/1920x1200.jpg"
-  spawn "nitrogen --restore &"
+  --
   xmproc <- spawnPipe "xmobar ~/.xmonad/xmobarrc.hs"
   -- spawn "killall xmobar"
+  -- restart "xmonad" True
   xmonad $ docks
          $ withNavigation2DConfig myNav2DConf
          $ additionalNav2DKeys (xK_Up, xK_Left, xK_Down, xK_Right)
@@ -655,7 +696,7 @@ main = do
                 -- , ppHidden = xmobarColor "#82AAFF" "" . wrap "*" ""   -- Hidden workspaces in xmobar
                 , ppHiddenNoWindows = xmobarColor "#c792ea" ""        -- Hidden workspaces (no windows)
                 , ppTitle = xmobarColor xmobarTitleColor "" . shorten 50
-                , ppSep = " | "
+                , ppSep = "|"
                 , ppOutput = hPutStrLn xmproc
          } >> updatePointer (0.75, 0.75) (0.75, 0.75)
       }
@@ -668,6 +709,7 @@ main = do
 --
 -- No need to modify this.
 --
+
 defaults = def {
     -- simple stuff
     terminal           = myTerminal,
@@ -686,6 +728,6 @@ defaults = def {
     layoutHook         = myLayout,
     -- handleEventHook    = E.fullscreenEventHook,
     handleEventHook    = fullscreenEventHook,
-    manageHook         = manageDocks <+> myManageHook,
+    manageHook         = manageDocks <+> myManageHook <+> placeHook simpleSmart,
     startupHook        = myStartupHook
 }
