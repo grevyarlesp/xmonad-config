@@ -77,5 +77,8 @@ if [ -z "$(pgrep dunst)" ] ; then
     dunst &
 fi
 
+if [ -z "$(pgrep udiskie)" ] ; then
+    udiskie &
+fi
 # xbindkeys
 

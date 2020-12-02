@@ -2,10 +2,14 @@
 
 import System.IO
 import Data.Monoid
+import Data.Ratio ((%))
+import Data.Word
+import Control.Monad ((>=>), join, liftM, when)   -- For Custom Fullscreen Function
+import GHC.Word
 import System.Exit
 import qualified Data.List as L
 import XMonad.Util.Font
-
+import XMonad.Layout.AvoidFloats
 import XMonad hiding ( (|||) )
 import XMonad.Actions.Navigation2D
 import XMonad.Actions.UpdatePointer
@@ -15,10 +19,12 @@ import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.ManageHelpers
 import qualified XMonad.Actions.FlexibleManipulate as Flex
 import XMonad.Layout.DecorationMadness
+import XMonad.Layout.BorderResize
 
 import XMonad.Hooks.SetWMName
 import XMonad.Hooks.EwmhDesktops (ewmh)
 import XMonad.Hooks.Place
+import XMonad.Hooks.InsertPosition
 
 import XMonad.Layout hiding ( (|||) )
 import XMonad.Layout.TabBarDecoration
@@ -34,13 +40,13 @@ import XMonad.Layout.SimpleFloat
 import XMonad.Layout.WindowArranger
 import XMonad.Layout.ThreeColumns
 import XMonad.Layout.LayoutCombinators
-import XMonad.Layout.Named
+import XMonad.Layout.ResizableTile -- for resizeable tall layout 
+import XMonad.Layout.MouseResizableTile -- for mouse control  
 --- Layout Modifiers 
 import XMonad.Layout.LimitWindows (limitWindows, increaseLimit, decreaseLimit)
-
-
 import XMonad.Layout.Spacing
 import XMonad.Layout.MultiToggle
+import qualified XMonad.Layout.ToggleLayouts as TL
 import XMonad.Layout.MultiToggle.Instances
 import XMonad.Layout.NoFrillsDecoration
 import XMonad.Layout.Renamed
@@ -57,6 +63,7 @@ import Graphics.X11.ExtraTypes.XF86
 import qualified XMonad.StackSet as W
 import qualified Data.Map        as M
 
+import XMonad.Actions.FloatKeys
 -- Tree Select 
 import Data.Tree
 import qualified XMonad.Actions.TreeSelect as TS
@@ -66,13 +73,18 @@ import qualified XMonad.StackSet as W
 import XMonad.Actions.FloatSnap
 import XMonad.Actions.Promote
 
+import XMonad.Prompt
+import XMonad.Prompt.FuzzyMatch
+
+import XMonad.Util.NamedScratchpad
+import XMonad.Prompt.Shell 
+
 ----------------------------mupdf--------------------------------------------
 -- Terminimport XMonad.Hooks.EwmhDesktopsal
 -- The preferred terminal program, which is used in a binding below and by
 -- certain contrib modules.
 --
---
---
+
 myTerminal = "~/.scripts/launch_kitty.sh"
 
 -- The command to lock the screen or show the screensaver.
@@ -105,11 +117,15 @@ xmobarEscape = concatMap doubleLts
 
 myWorkspaces :: [String]
 myWorkspaces = clickable . map xmobarEscape
-               $ ["1. main", "2. web", "3. docs", "4. code", "5. files", "6. chat", "7. write", "8. edit", "9. watch"]
+               $ ["1. main", "2. web", "3. docs", "4. code1", "5. code2", "6. code", "7. write", "8. edit", "9. watch"]
   where
         clickable l = [ "<action=xdotool key super+" ++ show n ++ ">" ++ ws ++ "</action>" |
                       (i,ws) <- zip [1..9] l,
                       let n = i ]
+
+    -- [((m .|. modMask, k), windows $ f i)
+    --   | (i, k) <- zip (XMonad.workspaces conf) [xK_1 .. xK_9]
+    --   , (f, m) <- [(W.greedyView, 0), (W.shift, shiftMask)]]
 ------------------------------------------------------------------------
 -- Window rules
 -- Execute arbitrary actions and WindowSet manipulations when managing
@@ -124,24 +140,37 @@ myWorkspaces = clickable . map xmobarEscape
 -- To match on the WM_NAME, you can use 'title' in the same way that
 -- 'className' and 'resource' are used below.
 --
-myManageHook = composeAll
-    [
-      className =? "firefox"                --> doShift "2. web"
-    , resource  =? "desktop_window"               --> doIgnore
-    , className =? "Galculator"                   --> doCenterFloat
-    , className =? "Steam"                        --> doCenterFloat
-    , className =? "Gimp"                         --> doCenterFloat
-    , resource  =? "gpicview"                     --> doCenterFloat
-    , className =? "MPlayer"                      --> doCenterFloat
-    , className =? "Pavucontrol"                  --> doCenterFloat
-    , className =? "Mate-power-preferences"       --> doCenterFloat
-    , className =? "Xfce4-power-manager-settings" --> doCenterFloat
-    , className =? "VirtualBox"                   --> doShift "4:vm"
-    , className =? "Xchat"                        --> doShift "5:media"
-    , className =? "stalonetray"                  --> doIgnore
-    , isFullscreen                                --> (doF W.focusDown <+> doFullFloat)
-    -- , isFullscreen                             --> doFullFloat
-    ]
+------------------------
+
+-- Android studio fix 
+(~=?) :: Eq a => Query [a] -> [a] -> Query Bool
+q ~=? x = fmap (L.isInfixOf x) q
+-- Do not treat menus and settings popup as a separate window.
+manageIdeaCompletionWindow = (className =? "jetbrains-studio") <&&> (title ~=? "win") --> doIgnore
+
+myManageHook = 
+      (isDialog --> doF W.swapUp)                       -- Bring Dialog Window on Top of Parent Floating Window
+       <+> insertPosition Below Newer                    -- Insert New Windows at the Bottom of Stack Area
+       <+> manageIdeaCompletionWindow                    -- Adding Fix for Android Studio
+       <+>
+      composeAll
+      [
+        className =? "firefox"                --> doShift "2. web"
+      , resource  =? "desktop_window"               --> doIgnore
+      , className =? "Galculator"                   --> doCenterFloat
+      , className =? "Steam"                        --> doCenterFloat
+      , className =? "Gimp"                         --> doCenterFloat
+      , resource  =? "gpicview"                     --> doCenterFloat
+      , className =? "MPlayer"                      --> doCenterFloat
+      , className =? "Pavucontrol"                  --> doCenterFloat
+      -- , className =? "Mate-power-preferences"       --> doCenterFloat
+      , className =? "Xfce4-power-manager-settings" --> doCenterFloat
+      -- , className =? "VirtualBox"                   --> doShift "4:vm"
+      , className =? "Xchat"                        --> doShift "5:media"
+      , className =? "stalonetray"                  --> doIgnore
+      -- , isFullscreen                                --> (doF W.focusDown <+> doFullFloat)
+      , isFullscreen                             --> doFullFloat
+      ]
 
 
 
@@ -155,19 +184,27 @@ myManageHook = composeAll
 -- The available layouts.  Note that each layout is separated by |||,
 -- which denotes layout choice.
 
-outerGaps    = 15
+outerGaps    = 0
 myGaps       = gaps [(U, outerGaps), (R, outerGaps), (L, outerGaps), (D, outerGaps)]
 addSpace     = renamed [CutWordsLeft 2] . spacing gap
-tab          =  avoidStruts
+tab          = avoidStruts
                $ renamed [Replace "Tabbed"]
                --- $ addTopBar
                --- $ addTabsBottomAlways
                 -- $ addTabsBottomAlways shrinkText myTabTheme tabbed
+              $ myGaps
+              $ addSpace
                $ tabbedBottomAlways shrinkText myTabTheme
 
-myFloat = windowArrange
-          $ renamed [Replace "Floating"]
-          $ tabBar shrinkText myTabTheme Bottom (gaps[(D, 18)] $ (simpleFloat' shrinkText myTabTheme)
+
+
+
+myFloat = renamed [Replace "Floating"]
+          -- $ noFrillsDeco shrinkText myTabTheme 
+          $ addSpace
+          $ myGaps
+          $  tabBar shrinkText myTabTheme Bottom (simplestFloat)
+          -- $ tabBar shrinkText myTabTheme Bottom (gaps[(D, 18)] $ (simpleFloat' shrinkText myTabTheme))
           -- $ floatDefault shrinkText myTabTheme
 
 -- (renamed [CutWordsLeft 1]
@@ -180,22 +217,24 @@ myFloat = windowArrange
 --                   $ addSpace (BSP.emptyBSP)
 --                 )
 
-layouts      = tab ||| avoidStruts (
+layouts      = TL.toggleLayouts myFloat (borderResize (windowArrange (tab ||| avoidStruts (
                   (
                   -- addTopBar
                   renamed [Replace "3C"]
                   $ windowNavigation
                   $ addSpace
-                  -- $ myGaps
+                  $ myGaps
                   $ tabBar shrinkText myTabTheme Bottom (gaps[(D, 18)] $ ThreeColMid 1 (3/100) (1/2))
                   -- $ renamed [CutWordsLeft 2]
                 ) ||| (
                   --- $ addTopBar
                   windowNavigation
                   $ renamed [Replace "Grid"]
-                  -- $ addSpace
-                  $  tabBar shrinkText myTabTheme Bottom (gaps [(D, 18)] $ Grid)) ||| myFloat
-                  )
+                  $ myGaps
+                  $ addSpace
+                  $  tabBar shrinkText myTabTheme Bottom (gaps [(D, 18)] $ Grid)
+                  )))))
+
 
 myLayout    = smartBorders
               $ mkToggle (NOBORDERS ?? FULL ?? EOT)
@@ -294,7 +333,7 @@ myTreeNavigation = M.fromList
 -- Colors and borders
 
 -- Color of current window title in xmobar.
-xmobarTitleColor = "#C678DD"
+xmobarTitleColor = "green"
 
 -- Color of current workspace in xmobar.
 xmobarCurrentWorkspaceColor = "#51AFEF"
@@ -323,7 +362,7 @@ cyan    = "#2aa198"
 green   = "#859900"
 
 -- sizes
-gap         = 1
+gap         = 2
 topbar      = 5
 border      = 0
 prompt      = 5
@@ -365,7 +404,7 @@ topBarTheme = def
 -- addTopBar =  noFrillsDeco shrinkText topBarTheme
 
 myTabTheme = def
-    { fontName = "xft:Noto Sans Mono:pixelsize=12:antialias=true"
+    { fontName = "xft:monospace:pixelsize=10:antialias=true"
     , activeColor           = base02
     , inactiveColor         = "#000000"
     , activeBorderColor     = active
@@ -374,6 +413,28 @@ myTabTheme = def
     , inactiveTextColor     = "#FFFFFF"
     , decoHeight            = 18
     }
+
+--
+
+scratchpads = [
+  NS "todo" spawnTerm findTerm manageTerm,
+  NS "wiki" spawnWiki findWiki nonFloating
+              ]
+  where 
+    role = stringProperty "WM_WINDOW_ROLE"
+    spawnTerm = "GLFW_IM_MODULE=ibus kitty --name scratchpad --session ~/.config/kitty/todo.conf"
+    spawnWiki = "GLFW_IM_MODULE=ibus kitty --name scratchpad_wiki --session ~/.config/kitty/vimwiki.conf"
+    findTerm = resource =? "scratchpad"
+    findWiki = resource =? "scratchpad_wiki"
+    manageTerm = customFloating $ W.RationalRect l t w h -- and I'd like it fixed using the geometry below
+      where
+        -- reusing these variables is ok since they're confined to their own 
+        -- where clauses 
+        h = (1/2)       -- height, 10% 
+        w = (1/2)       -- width, 100%
+        t = 0.1            -- bottom edge
+        l = (1 - w)/2-- centered left/right
+
 
 ------------------------------------------------------------------------
 -- Key bindings
@@ -427,7 +488,8 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
      spawn "~/.scripts/Toggle_Keymap.sh")
   -- Toggle current focus window to fullscreen
   , ((modMask, xK_f), sendMessage $ Toggle FULL)
-  -- , ((modMask, xK_s), sendMessage $ JumpToLayout "Tabbed")
+  , ((modMask, xK_s), sendMessage $ TL.Toggle "Floating")
+  , ((modMask .|. altMask, xK_s), sendMessage $ JumpToLayout "Tabbed")
 
   -- Mute volume.
   , ((0, xF86XK_AudioMute),
@@ -574,42 +636,33 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
   ]
 
   ++
-  -- Some bindings for BinarySpacePartition
-  -- https://github.com/benweitzman/BinarySpacePartition
-  [
-    ((modMask .|. controlMask,               xK_Right ), sendMessage $ ExpandTowards R)
-  , ((modMask .|. controlMask .|. shiftMask, xK_Right ), sendMessage $ ShrinkFrom R)
-  , ((modMask .|. controlMask,               xK_Left  ), sendMessage $ ExpandTowards L)
-  , ((modMask .|. controlMask .|. shiftMask, xK_Left  ), sendMessage $ ShrinkFrom L)
-  , ((modMask .|. controlMask,               xK_Down  ), sendMessage $ ExpandTowards D)
-  , ((modMask .|. controlMask .|. shiftMask, xK_Down  ), sendMessage $ ShrinkFrom D)
-  , ((modMask .|. controlMask,               xK_Up    ), sendMessage $ ExpandTowards U)
-  , ((modMask .|. controlMask .|. shiftMask, xK_Up    ), sendMessage $ ShrinkFrom U)
-  , ((modMask,                               xK_r     ), sendMessage BSP.Rotate)
-  , ((modMask,                               xK_s     ), sendMessage BSP.Swap)
-  -- , ((modMask,                               xK_n     ), sendMessage BSP.FocusParent)
-  -- , ((modMask .|. controlMask,               xK_n     ), sendMessage BSP.SelectNode)
-  -- , ((modMask .|. shiftMask,                 xK_n     ), sendMessage BSP.MoveNode)
+  [ ((modMask, xK_u), namedScratchpadAction scratchpads "todo")
+   , ((modMask, xK_i), namedScratchpadAction scratchpads "wiki")
   ]
-
-  ++ 
-
+  ++
+  [
+    ((modMask, xK_o), shellPrompt myXPromptConfig)
+  ]
+  ++
   [
       ((modMask  .|. controlMask              , xK_s    ), sendMessage  Arrange         )
-      , ((modMask.|. controlMask              , xK_Left ), sendMessage (MoveLeft      value))
-      , ((modMask.|. controlMask              , xK_Right), sendMessage (MoveRight     value))
-      , ((modMask.|. controlMask              , xK_Down ), sendMessage (MoveDown      value))
-      , ((modMask.|. controlMask              , xK_Up   ), sendMessage (MoveUp        value))
-      , ((modMask.|. shiftMask, xK_Left ), sendMessage (IncreaseLeft  value))
-      , ((modMask.|. shiftMask, xK_Right), sendMessage (IncreaseRight value))
-      , ((modMask.|. controlMask .|. shiftMask, xK_Left ), sendMessage (DecreaseLeft  value))
-      , ((modMask.|. controlMask .|. shiftMask, xK_Right), sendMessage (DecreaseRight value))
-      , ((modMask.|. controlMask .|. shiftMask, xK_Down ), sendMessage (DecreaseDown  value))
-      , ((modMask.|. controlMask .|. shiftMask, xK_Up   ), sendMessage (DecreaseUp   value))
+      , ((modMask .|. controlMask .|. shiftMask, xK_s    ), sendMessage  DeArrange       )
+      , ((modMask.|. controlMask              , xK_Left ), sendMessage (MoveLeft      valueInt))
+      , ((modMask.|. controlMask              , xK_Right), sendMessage (MoveRight     valueInt))
+      , ((modMask.|. controlMask              , xK_Down ), sendMessage (MoveDown      valueInt))
+      , ((modMask.|. controlMask              , xK_Up   ), sendMessage (MoveUp        valueInt))
+      , ((modMask.|. shiftMask, xK_Left ), sendMessage (IncreaseLeft  valueInt))
+      , ((modMask.|. shiftMask, xK_Right), sendMessage (IncreaseRight valueInt))
+      , ((modMask.|. shiftMask, xK_Down), sendMessage (IncreaseDown valueInt))
+      , ((modMask.|. shiftMask, xK_Up), sendMessage (IncreaseUp valueInt))
+      , ((modMask.|. controlMask .|. shiftMask, xK_Left ), sendMessage (DecreaseLeft  valueInt))
+      , ((modMask.|. controlMask .|. shiftMask, xK_Right), sendMessage (DecreaseRight valueInt))
+      , ((modMask.|. controlMask .|. shiftMask, xK_Down ), sendMessage (DecreaseDown  valueInt))
+      , ((modMask.|. controlMask .|. shiftMask, xK_Up   ), sendMessage (DecreaseUp   valueInt))
   ] 
   where 
-    value :: Int
-    value = 50
+    valueInt :: Int 
+    valueInt = 50
 
 ------------------------------------------------------------------------
 -- Mouse bindings
@@ -617,25 +670,17 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
 -- Focus rules
 -- True if your focus should follow your mouse cursor.
 myFocusFollowsMouse :: Bool
-myFocusFollowsMouse = True
+myFocusFollowsMouse = False
 
 myMouseBindings (XConfig {XMonad.modMask = modMask}) = M.fromList $
   [
-    -- mod-button1, Set the window to floating mode and move by dragging
-    -- ((modMask, button3),
     ((modMask .|. controlMask, button1),
-      (\w -> focus w >> Flex.mouseWindow Flex.resize w))
+      -- (\w -> focus w >> mouseResizeWindow w >> afterDrag (withFocused $ windows . W.sink)))
+      (\w -> focus w >> mouseResizeWindow w))
     , ((modMask, button1),
-      (\w -> focus w >> mouseMoveWindow w >> ifClick (snapMagicMove (Just 50) (Just 50) w)))
-         -- (\w -> focus w >> (withFocused $ windows . W.sink)))
-    -- mod-button2, Raise the window to the top of the stack
-    -- , ((modMask, button2),
-    --       (\w -> focus w >> windows W.swapMaster))
-    -- mod-button3, Set the window to floating mode and resize by dragging
+    (\w -> focus w >> mouseMoveWindow w ))
     , ((modMask, button2),
        (\w -> focus w >> mouseResizeWindow w))
-
-    -- you may also bind events to the mouse scroll wheel (button4 and button5)
   ]
 
 
@@ -661,9 +706,42 @@ myStartupHook = do
   setWMName "Xmonad"
   spawn     "~/.xmonad/startup.sh"
 
-  spawn     "picom -cb"
+  spawn     "picom -b"
   setDefaultCursor xC_left_ptr
 
+------------------------------------------------------------------------
+
+myBackgroundColor = "#151515"
+
+myContentColor = "#d0d0d0"
+
+
+myXPromptConfig :: XPConfig
+myXPromptConfig =
+  XPC
+    { promptBorderWidth = 1
+    , alwaysHighlight = True
+    , height = 22
+    , historySize = 256
+    , font = myFont
+    , bgColor = myBackgroundColor
+    , fgColor = myContentColor
+    , bgHLight = myBackgroundColor
+    , fgHLight = myContentColor
+    , borderColor = myBackgroundColor
+    , position = Top
+    , autoComplete = Nothing
+    , showCompletionOnTab = False
+    , searchPredicate = fuzzyMatch
+    , defaultPrompter = id
+    , sorter = const id
+    , maxComplRows = Just 7
+    , promptKeymap = defaultXPKeymap
+    , completionKey = (0, xK_Tab)
+    , changeModeKey = xK_grave
+    , historyFilter = id
+    , defaultText = []
+    }
 
 ------------------------------------------------------------------------
 -- Run xmonad with all the defaults we set up.
@@ -671,7 +749,7 @@ myStartupHook = do
 
 main = do
 
-  spawn "feh --bg-center ~/Pictures/My_Wallpapers/wallhaven-zmjd7o_1366x768.png"
+  spawn     "nitrogen --restore &"
   spawn     "~/.xmonad/startup.sh"
   spawn     "nitrogen --restore"
   -- spawn "feh --bg-center ~/.xmonad/1920x1200.jpg"
@@ -684,19 +762,23 @@ main = do
          $ additionalNav2DKeys (xK_Up, xK_Left, xK_Down, xK_Right)
                                [
                                   (mod4Mask,               windowGo  )
-                                , (mod4Mask .|. shiftMask, windowSwap)
+                                -- , (mod4Mask .|. shiftMask, windowSwap)
                                ]
                                False
+         -- $ ewmh
          $ ewmh
          -- $ pagerHints -- uncomment to use taffybar
          $ defaults {
          logHook = dynamicLogWithPP xmobarPP {
-                ppCurrent = xmobarColor xmobarCurrentWorkspaceColor "" . wrap "[" "]"
-                , ppVisible = xmobarColor "#c3e88d" ""                -- Visible but not current workspace
+                -- ppCurrent = xmobarColor xmobarCurrentWorkspaceColor "" . wrap "[" "]"
+                ppCurrent = xmobarColor "black" "#008894" . wrap "" ""
+                , ppVisible = xmobarColor "#c3e88d" "green"                -- Visible but not current workspace
                 -- , ppHidden = xmobarColor "#82AAFF" "" . wrap "*" ""   -- Hidden workspaces in xmobar
                 , ppHiddenNoWindows = xmobarColor "#c792ea" ""        -- Hidden workspaces (no windows)
-                , ppTitle = xmobarColor xmobarTitleColor "" . shorten 50
+                , ppTitle = xmobarColor xmobarTitleColor "" . shorten 45
+                -- , ppTitle = "#FFD700" xmobarTitleColor "" . shorten 50
                 , ppSep = "|"
+               , ppLayout = xmobarColor "#FFD700" ""
                 , ppOutput = hPutStrLn xmproc
          } >> updatePointer (0.75, 0.75) (0.75, 0.75)
       }
@@ -727,7 +809,8 @@ defaults = def {
     -- hooks, layouts
     layoutHook         = myLayout,
     -- handleEventHook    = E.fullscreenEventHook,
-    handleEventHook    = fullscreenEventHook,
-    manageHook         = manageDocks <+> myManageHook <+> placeHook simpleSmart,
+    handleEventHook    = handleEventHook def <+> fullscreenEventHook,
+    manageHook         =   namedScratchpadManageHook scratchpads <+> manageDocks <+> myManageHook,
+    -- manageHook         =   manageDocks <+> myManageHook <+> placeHook simpleSmart,
     startupHook        = myStartupHook
 }
