@@ -92,11 +92,11 @@ myScreensaver = "dm-tool switch-to-greeter"
 
 -- The command to take a selective screenshot, where you select
 -- what you'd like to capture on the screen.
-mySelectScreenshot = "spectacle -r"
+mySelectScreenshotCliboard = "maim -s | xclip -selection clipboard -t image/png"
 
+mySelectScreenshot = "maim -s ~/Pictures/MAIM_Screenshot_$(date +%F-%T).png && notify-send \"Maim\" \"Region Screenshot taken\" -t 2000"
 -- The command to take a fullscreen screenshot.
-myScreenshot = "spectacle -f"
-
+myScreenshot = "maim ~/Pictures/MAIM_Screenshot_$(date +%F-%T).png && notify-send \"Maim\" \"Full Screenshot taken\" -t 2000"
 -- The command to use as a launcher, to launch commands that don't have
 -- preset keybindings.
 myLauncher = "~/.scripts/rofi_app_launcher.sh"
@@ -202,6 +202,7 @@ tab          = avoidStruts
 myFloat = renamed [Replace "Floating"]
           -- $ noFrillsDeco shrinkText myTabTheme 
           $ addSpace
+          $ windowArrange 
           $ myGaps
           $  tabBar shrinkText myTabTheme Bottom (simplestFloat)
           -- $ tabBar shrinkText myTabTheme Bottom (gaps[(D, 18)] $ (simpleFloat' shrinkText myTabTheme))
@@ -217,7 +218,7 @@ myFloat = renamed [Replace "Floating"]
 --                   $ addSpace (BSP.emptyBSP)
 --                 )
 
-layouts      = TL.toggleLayouts myFloat (borderResize (windowArrange (tab ||| avoidStruts (
+layouts      = TL.toggleLayouts myFloat (windowArrange (tab ||| avoidStruts (
                   (
                   -- addTopBar
                   renamed [Replace "3C"]
@@ -233,7 +234,7 @@ layouts      = TL.toggleLayouts myFloat (borderResize (windowArrange (tab ||| av
                   $ myGaps
                   $ addSpace
                   $  tabBar shrinkText myTabTheme Bottom (gaps [(D, 18)] $ Grid)
-                  )))))
+                  ))))
 
 
 myLayout    = smartBorders
