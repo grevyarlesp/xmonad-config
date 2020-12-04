@@ -67,11 +67,11 @@ fi
 # fi
 
 if [ -z "$(pgrep ibus-daemon)" ] ; then
-    ibus-daemon -drx
+    ibus-daemon -drx &
 else 
-    killall ibus-daemon && ibus-daemon -drx
+    killall ibus-daemon &
+    ibus-daemon -drx &
 fi
-
 
 if [ -z "$(pgrep dunst)" ] ; then
     dunst &
@@ -80,5 +80,5 @@ fi
 if [ -z "$(pgrep udiskie)" ] ; then
     udiskie &
 fi
-# xbindkeys
 
+syndaemon -i .5 -K -R -t -d

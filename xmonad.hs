@@ -32,6 +32,7 @@ import XMonad.Layout.Gaps
 import XMonad.Layout.Fullscreen
 import XMonad.Layout.BinarySpacePartition as BSP
 import XMonad.Layout.NoBorders
+import XMonad.Layout.IfMax
 
 -- Layouts 
 import XMonad.Layout.Tabbed
@@ -156,6 +157,7 @@ myManageHook =
       composeAll
       [
         className =? "firefox"                --> doShift "2. web"
+      , className =? "knotes"                --> doIgnore
       , resource  =? "desktop_window"               --> doIgnore
       , className =? "Galculator"                   --> doCenterFloat
       , className =? "Steam"                        --> doCenterFloat
@@ -218,23 +220,24 @@ myFloat = renamed [Replace "Floating"]
 --                   $ addSpace (BSP.emptyBSP)
 --                 )
 
+my3C = renamed [Replace "3C"]
+      $ windowNavigation
+      $ addSpace
+      $ myGaps
+      $ tabBar shrinkText myTabTheme Bottom (gaps[(D, 18)] $ ThreeColMid 1 (3/100) (1/2))
+
+myGrid = windowNavigation
+      $ renamed [Replace "Grid"]
+      $ myGaps
+      $ addSpace
+      $  tabBar shrinkText myTabTheme Bottom (gaps [(D, 18)] $ Grid)
+
 layouts      = TL.toggleLayouts myFloat (windowArrange (tab ||| avoidStruts (
-                  (
-                  -- addTopBar
-                  renamed [Replace "3C"]
-                  $ windowNavigation
-                  $ addSpace
-                  $ myGaps
-                  $ tabBar shrinkText myTabTheme Bottom (gaps[(D, 18)] $ ThreeColMid 1 (3/100) (1/2))
-                  -- $ renamed [CutWordsLeft 2]
-                ) ||| (
-                  --- $ addTopBar
-                  windowNavigation
-                  $ renamed [Replace "Grid"]
-                  $ myGaps
-                  $ addSpace
-                  $  tabBar shrinkText myTabTheme Bottom (gaps [(D, 18)] $ Grid)
-                  ))))
+                    (
+                    renamed [Replace "Grid3C"]
+                    $ IfMax 2 my3C myGrid 
+                    )
+                  )))
 
 
 myLayout    = smartBorders
@@ -264,6 +267,7 @@ treeselectAction myMenu = TS.treeselectAction myMenu
        Node(TS.TSNode "Lock" "Lock the system" (spawn "dm-tool switch-to-greeter")) []
        , Node(TS.TSNode "Suspend" "Suspend" (spawn "systemctl suspend")) []
        , Node(TS.TSNode "Logout" "logout" (io (exitWith ExitSuccess))) []
+       , Node(TS.TSNode "Reboot" "Reboot the system" (spawn "systemctl reboot")) []
        , Node(TS.TSNode "Shutdown" "Poweroff the system" (spawn "systemctl poweroff")) []
      ]
    , Node (TS.TSNode "Brightness" "Sets screen brightness using xbacklight" (return ()))
