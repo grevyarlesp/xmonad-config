@@ -81,4 +81,6 @@ if [ -z "$(pgrep udiskie)" ] ; then
     udiskie &
 fi
 
-syndaemon -i .5 -K -R -t -d
+if [ -z "$(pgrep xscreensaver)" ] ; then
+    xscreensaver &
+fi

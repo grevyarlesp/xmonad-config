@@ -1,4 +1,4 @@
--- xmonad config used by k4l1brx
+-- xmonad config used by k4l1brx, modified from randomthought's config 
 
 import System.IO
 import Data.Monoid
@@ -118,7 +118,7 @@ xmobarEscape = concatMap doubleLts
 
 myWorkspaces :: [String]
 myWorkspaces = clickable . map xmobarEscape
-               $ ["1. main", "2. web", "3. docs", "4. code1", "5. code2", "6. code", "7. write", "8. edit", "9. watch"]
+               $ ["1:\xf314 ", "2:\xf003 ", "3:\xf0c3 ", "4:\xe62b ","5:\xe62b ", "6:\xf016 ", "7:\xf044 ", "8:\xf126","9:\xf152 "]
   where
         clickable l = [ "<action=xdotool key super+" ++ show n ++ ">" ++ ws ++ "</action>" |
                       (i,ws) <- zip [1..9] l,
@@ -190,53 +190,36 @@ outerGaps    = 0
 myGaps       = gaps [(U, outerGaps), (R, outerGaps), (L, outerGaps), (D, outerGaps)]
 addSpace     = renamed [CutWordsLeft 2] . spacing gap
 tab          = avoidStruts
-               $ renamed [Replace "Tabbed"]
-               --- $ addTopBar
-               --- $ addTabsBottomAlways
-                -- $ addTabsBottomAlways shrinkText myTabTheme tabbed
-              $ myGaps
+              $ renamed [Replace "Tabbed"]
               $ addSpace
+              -- $ gaps [(U, 0), (R, outerGaps), (L, outerGaps), (D, 0)]
                $ tabbedBottomAlways shrinkText myTabTheme
+              -- $ tabBar shrinkText myTabTheme Bottom (gaps [(D, 18)] $ Tall 1 0.03 0.5))
 
-
-
-
-myFloat = renamed [Replace "Floating"]
-          -- $ noFrillsDeco shrinkText myTabTheme 
+myTall = renamed [Replace "Tall"]
           $ addSpace
           $ windowArrange 
-          $ myGaps
-          $  tabBar shrinkText myTabTheme Bottom (simplestFloat)
-          -- $ tabBar shrinkText myTabTheme Bottom (gaps[(D, 18)] $ (simpleFloat' shrinkText myTabTheme))
-          -- $ floatDefault shrinkText myTabTheme
-
--- (renamed [CutWordsLeft 1]
---                   $ addTopBar
---                   $ windowNavigation
---                   $ renamed [Replace "BSP"]
---                   $ addTabs shrinkText myTabTheme
---                   $ subLayout [] Simplest
---                   $ myGaps
---                   $ addSpace (BSP.emptyBSP)
---                 )
+          -- $ tabBar shrinkText myTabTheme Bottom (gaps[(D, 18)] $ (Tall 1 (3/100) (1/2)))
+          $ tabBar shrinkText myTabTheme Bottom (gaps[(D, 18)] $ (ResizableTall 1 (3/100) (1/2) []))
 
 my3C = renamed [Replace "3C"]
       $ windowNavigation
       $ addSpace
-      $ myGaps
-      $ tabBar shrinkText myTabTheme Bottom (gaps[(D, 18)] $ ThreeColMid 1 (3/100) (1/2))
+      $ tabBar shrinkText myTabTheme Bottom (gaps[(D, 18)] $ ThreeCol 1 (3/100) (1/2))
 
-myGrid = windowNavigation
-      $ renamed [Replace "Grid"]
-      $ myGaps
+myGrid = renamed [Replace "Grid"]
       $ addSpace
-      $  tabBar shrinkText myTabTheme Bottom (gaps [(D, 18)] $ Grid)
+      $ windowNavigation
+      $ tabBar shrinkText myTabTheme Bottom (gaps [(D, 18)] $ Grid)
 
-layouts      = TL.toggleLayouts myFloat (windowArrange (tab ||| avoidStruts (
-                    (
-                    renamed [Replace "Grid3C"]
-                    $ IfMax 2 my3C myGrid 
-                    )
+
+myRez = renamed [Replace "TallR"]
+      $ windowNavigation
+      $ addSpace
+      $ tabBar shrinkText myTabTheme Bottom (gaps [(D, 18)] $ mouseResizableTile {draggerType = BordersDragger})
+
+layouts      = TL.toggleLayouts (avoidStruts myRez) (windowArrange (tab ||| avoidStruts (
+                      myTall ||| my3C ||| myGrid
                   )))
 
 
@@ -339,15 +322,17 @@ myTreeNavigation = M.fromList
 
 -- Color of current window title in xmobar.
 xmobarTitleColor = "green"
+xmobarCurrentBackground = color3
+xmobarCurrentForeground = background
 
 -- Color of current workspace in xmobar.
 xmobarCurrentWorkspaceColor = "#51AFEF"
 
 -- Width of the window border in pixels.
-myBorderWidth = 1
+myBorderWidth = 2
 
-myNormalBorderColor     = "#000000"
-myFocusedBorderColor    = active
+myNormalBorderColor     = color8
+myFocusedBorderColor    = color3
 
 base03  = "#002b36"
 base02  = "#073642"
@@ -359,12 +344,38 @@ base2   = "#eee8d5"
 base3   = "#fdf6e3"
 yellow  = "#b58900"
 orange  = "#cb4b16"
-red     = "#dc322f"
 magenta = "#d33682"
 violet  = "#6c71c4"
 blue    = "#268bd2"
 cyan    = "#2aa198"
-green   = "#859900"
+
+foreground   = "#d5c4a1"
+background   = "#1d2021"
+cursor       = "#d5c4a1"
+
+color0       = "#1d2021"
+color8       = "#665c54"
+
+color1       = "#fb4934"
+color9       = "#fb4934"
+
+color2       = "#b8bb26"
+color10      = "#b8bb26"
+
+color3       = "#fabd2f"
+color11      = "#fabd2f"
+
+color4       = "#83a598"
+color12      = "#83a598"
+
+color5       = "#d3869b"
+color13      = "#d3869b"
+
+color6       = "#8ec07c"
+color14      = "#8ec07c"
+
+color7       = "#d5c4a1"
+color15      = "#fbf1c7"
 
 -- sizes
 gap         = 2
@@ -374,7 +385,7 @@ prompt      = 5
 status      = 5
 
 active      = blue
-activeWarn  = red
+activeWarn  = color1
 inactive    = base02
 focusColor  = blue
 unfocusColor = base02
@@ -401,7 +412,7 @@ topBarTheme = def
     , activeBorderColor     = active
     , activeColor           = active
     , activeTextColor       = active
-    , urgentBorderColor     = red
+    , urgentBorderColor     = color1
     , urgentTextColor       = yellow
     , decoHeight            = topbar
     }
@@ -409,13 +420,13 @@ topBarTheme = def
 -- addTopBar =  noFrillsDeco shrinkText topBarTheme
 
 myTabTheme = def
-    { fontName = "xft:monospace:pixelsize=10:antialias=true"
-    , activeColor           = base02
-    , inactiveColor         = "#000000"
-    , activeBorderColor     = active
-    , inactiveBorderColor   = base02
-    , activeTextColor       = "#FFFFFF"
-    , inactiveTextColor     = "#FFFFFF"
+    { fontName = "xft:LiberationSans-Bold:size=10:antialias=true,ipamincho:size=10"
+    , activeColor           = color3
+    , inactiveColor         = color8
+    , activeBorderColor     = color3
+    , inactiveBorderColor   = color8
+    , activeTextColor       = background
+    , inactiveTextColor     = foreground
     , decoHeight            = 18
     }
 
@@ -473,16 +484,13 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
   , ((modMask, xK_p),
      spawn myLauncher)
 
-  -- Take a selective screenshot using the command specified by mySelectScreenshot.
-  , ((modMask .|. shiftMask, xK_p),
-     spawn mySelectScreenshot)
-
   , ((modMask .|. shiftMask, xK_Return),
       spawn "dolphin \"`xcwd`\"")
   -- Take a full screenshot using the command specified by myScreenshot.
   , ((modMask, xK_Print),
      spawn myScreenshot)
 
+  -- Take a selective screenshot using the command specified by mySelectScreenshot.
   , ((modMask .|. shiftMask, xK_Print),
      spawn mySelectScreenshot)
 
@@ -493,8 +501,8 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
      spawn "~/.scripts/Toggle_Keymap.sh")
   -- Toggle current focus window to fullscreen
   , ((modMask, xK_f), sendMessage $ Toggle FULL)
-  , ((modMask, xK_s), sendMessage $ TL.Toggle "Floating")
-  , ((modMask .|. altMask, xK_s), sendMessage $ JumpToLayout "Tabbed")
+  , ((modMask, xK_s), sendMessage $ TL.Toggle "TallR")
+  , ((modMask .|. shiftMask, xK_p), sendMessage $ JumpToLayout "Tabbed")
 
   -- Mute volume.
   , ((0, xF86XK_AudioMute),
@@ -580,6 +588,8 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
   -- Expand the master area.
   , ((modMask, xK_l),
      sendMessage Expand)
+  , ((modMask, xK_a), sendMessage ShrinkSlave) -- %! Shrink a slave area
+  , ((modMask, xK_z), sendMessage ExpandSlave) -- %! Expand a slave area
 
   -- Push window back into tiling.
   , ((modMask, xK_t),
@@ -776,16 +786,16 @@ main = do
          $ defaults {
          logHook = dynamicLogWithPP xmobarPP {
                 -- ppCurrent = xmobarColor xmobarCurrentWorkspaceColor "" . wrap "[" "]"
-                ppCurrent = xmobarColor "black" "#008894" . wrap "" ""
-                , ppVisible = xmobarColor "#c3e88d" "green"                -- Visible but not current workspace
-                -- , ppHidden = xmobarColor "#82AAFF" "" . wrap "*" ""   -- Hidden workspaces in xmobar
-                , ppHiddenNoWindows = xmobarColor "#c792ea" ""        -- Hidden workspaces (no windows)
-                , ppTitle = xmobarColor xmobarTitleColor "" . shorten 45
-                -- , ppTitle = "#FFD700" xmobarTitleColor "" . shorten 50
-                , ppSep = "|"
-               , ppLayout = xmobarColor "#FFD700" ""
+                ppCurrent = xmobarColor xmobarCurrentForeground xmobarCurrentBackground . wrap " " " "
+                , ppHiddenNoWindows = xmobarColor color8 "" .wrap " " " "        -- Hidden workspaces (no windows)
+                , ppVisible = xmobarColor color4 "" . wrap " " " " -- Visible but not current workspace (Xinerama only)
+                , ppHidden = xmobarColor color3  "" . wrap " " " " -- Hidden workspaces in xmobar
+                , ppTitle = xmobarColor color3 "" . shorten 45
+                , ppSep = " "
+               , ppLayout = xmobarColor color3 "" .wrap "[" "]"
                 , ppOutput = hPutStrLn xmproc
-         } >> updatePointer (0.75, 0.75) (0.75, 0.75)
+         } 
+         -- >> updatePointer (0.75, 0.75) (0.75, 0.75)
       }
 
 ------------------------------------------------------------------------
@@ -793,9 +803,6 @@ main = do
 -- A structure containing your configuration settings, overriding
 -- fields in the default config. Any you don't override, will
 -- use the defaults defined in xmonad/XMonad/Config.hs
---
--- No need to modify this.
---
 
 defaults = def {
     -- simple stuff
