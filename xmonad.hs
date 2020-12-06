@@ -434,13 +434,16 @@ myTabTheme = def
 
 scratchpads = [
   NS "todo" spawnTerm findTerm manageTerm,
+  NS "gen" spawnGen findGen manageTerm,
   NS "wiki" spawnWiki findWiki nonFloating
               ]
   where 
     role = stringProperty "WM_WINDOW_ROLE"
     spawnTerm = "GLFW_IM_MODULE=ibus kitty --name scratchpad --session ~/.config/kitty/todo.conf"
     spawnWiki = "GLFW_IM_MODULE=ibus kitty --name scratchpad_wiki --session ~/.config/kitty/vimwiki.conf"
+    spawnGen = "GLFW_IM_MODULE=ibus kitty --name scratchpad_gen"
     findTerm = resource =? "scratchpad"
+    findGen = resource =? "scratchpad_gen"
     findWiki = resource =? "scratchpad_wiki"
     manageTerm = customFloating $ W.RationalRect l t w h -- and I'd like it fixed using the geometry below
       where
@@ -653,6 +656,7 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
   ++
   [ ((modMask, xK_u), namedScratchpadAction scratchpads "todo")
    , ((modMask, xK_i), namedScratchpadAction scratchpads "wiki")
+   , ((modMask, xK_g), namedScratchpadAction scratchpads "gen")
   ]
   ++
   [
@@ -722,6 +726,7 @@ myStartupHook = do
   spawn     "~/.xmonad/startup.sh"
 
   spawn     "picom -b"
+  spawnOnce "mpd &"
   setDefaultCursor xC_left_ptr
 
 ------------------------------------------------------------------------
@@ -780,9 +785,7 @@ main = do
                                 -- , (mod4Mask .|. shiftMask, windowSwap)
                                ]
                                False
-         -- $ ewmh
          $ ewmh
-         -- $ pagerHints -- uncomment to use taffybar
          $ defaults {
          logHook = dynamicLogWithPP xmobarPP {
                 -- ppCurrent = xmobarColor xmobarCurrentWorkspaceColor "" . wrap "[" "]"
@@ -790,7 +793,7 @@ main = do
                 , ppHiddenNoWindows = xmobarColor color8 "" .wrap " " " "        -- Hidden workspaces (no windows)
                 , ppVisible = xmobarColor color4 "" . wrap " " " " -- Visible but not current workspace (Xinerama only)
                 , ppHidden = xmobarColor color3  "" . wrap " " " " -- Hidden workspaces in xmobar
-                , ppTitle = xmobarColor color3 "" . shorten 45
+                , ppTitle = xmobarColor color3 "" . shorten 50
                 , ppSep = " "
                , ppLayout = xmobarColor color3 "" .wrap "[" "]"
                 , ppOutput = hPutStrLn xmproc
@@ -799,10 +802,6 @@ main = do
       }
 
 ------------------------------------------------------------------------
--- Combine it all together
--- A structure containing your configuration settings, overriding
--- fields in the default config. Any you don't override, will
--- use the defaults defined in xmonad/XMonad/Config.hs
 
 defaults = def {
     -- simple stuff

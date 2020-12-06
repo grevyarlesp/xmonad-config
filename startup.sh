@@ -17,6 +17,7 @@ if [ -z "$(pgrep xfce4-power-manager)" ] ; then
     xfce4-power-manager &
 fi
 
+
 if [ -z "$(pgrep stalonetray)" ] ; then
     stalonetray -c ~/.xmonad/stalonetrayrrc
 fi
@@ -68,10 +69,6 @@ fi
 
 if [ -z "$(pgrep ibus-daemon)" ] ; then
     ibus-daemon -drx &
-else 
-    killall ibus-daemon &
-    ibus-daemon -drx &
-fi
 
 if [ -z "$(pgrep dunst)" ] ; then
     dunst &
