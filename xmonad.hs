@@ -788,7 +788,6 @@ main = do
          $ ewmh
          $ defaults {
          logHook = dynamicLogWithPP xmobarPP {
-                -- ppCurrent = xmobarColor xmobarCurrentWorkspaceColor "" . wrap "[" "]"
                 ppCurrent = xmobarColor xmobarCurrentForeground xmobarCurrentBackground . wrap " " " "
                 , ppHiddenNoWindows = xmobarColor color8 "" .wrap " " " "        -- Hidden workspaces (no windows)
                 , ppVisible = xmobarColor color4 "" . wrap " " " " -- Visible but not current workspace (Xinerama only)
@@ -819,9 +818,7 @@ defaults = def {
 
     -- hooks, layouts
     layoutHook         = myLayout,
-    -- handleEventHook    = E.fullscreenEventHook,
     handleEventHook    = handleEventHook def <+> fullscreenEventHook,
     manageHook         =   namedScratchpadManageHook scratchpads <+> manageDocks <+> myManageHook,
-    -- manageHook         =   manageDocks <+> myManageHook <+> placeHook simpleSmart,
     startupHook        = myStartupHook
 }
