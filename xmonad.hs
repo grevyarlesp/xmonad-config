@@ -79,6 +79,7 @@ import XMonad.Prompt.FuzzyMatch
 
 import XMonad.Util.NamedScratchpad
 import XMonad.Prompt.Shell 
+import XMonad.Actions.CopyWindow
 
 ----------------------------mupdf--------------------------------------------
 -- Terminimport XMonad.Hooks.EwmhDesktopsal
@@ -89,7 +90,7 @@ import XMonad.Prompt.Shell
 myTerminal = "~/.scripts/launch_kitty.sh"
 
 -- The command to lock the screen or show the screensaver.
-myScreensaver = "dm-tool switch-to-greeter"
+myScreensaver = "dm-tool lock"
 
 -- The command to take a selective screenshot, where you select
 -- what you'd like to capture on the screen.
@@ -321,8 +322,8 @@ myTreeNavigation = M.fromList
 -- Colors and borders
 
 -- Color of current window title in xmobar.
-xmobarTitleColor = "green"
-xmobarCurrentBackground = color3
+xmobarTitleColor = background
+xmobarCurrentBackground = color4
 xmobarCurrentForeground = background
 
 -- Color of current workspace in xmobar.
@@ -332,7 +333,7 @@ xmobarCurrentWorkspaceColor = "#51AFEF"
 myBorderWidth = 2
 
 myNormalBorderColor     = color8
-myFocusedBorderColor    = color3
+myFocusedBorderColor    = color4
 
 base03  = "#002b36"
 base02  = "#073642"
@@ -421,9 +422,9 @@ topBarTheme = def
 
 myTabTheme = def
     { fontName = "xft:LiberationSans-Bold:size=10:antialias=true,ipamincho:size=10"
-    , activeColor           = color3
+    , activeColor           = color4
     , inactiveColor         = color8
-    , activeBorderColor     = color3
+    , activeBorderColor     = color4
     , inactiveBorderColor   = color8
     , activeTextColor       = background
     , inactiveTextColor     = foreground
@@ -471,15 +472,20 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
   ----------------------------------------------------------------------
   -- Custom key bindings
   --
-
-  -- Start a terminal.  Terminal to start is specified by myTerminal variable.
+  [
+   ((modMask, xK_v ), windows copyToAll) -- @@ Make focused window always visible
+ , ((modMask .|. shiftMask, xK_v ),  killAllOtherCopies) -- @@ Toggle window state back
+ , ((modMask .|. shiftMask, xK_c     ), kill1) -- @@ Close the focused window
+  ]
+  ++
   [ ((modMask, xK_d),
      treeselectAction tsDefaultConfig)
+  -- Start a terminal.  Terminal to start is specified by myTerminal variable.
    , ((modMask .|. altMask, xK_Return),
      spawn $ XMonad.terminal conf)
 
   -- Lock the screen using command specified by myScreensaver.
-  , ((modMask, xK_0),
+  , ((modMask .|. altMask, xK_l),
      spawn myScreensaver)
 
   -- Spawn the launcher using command specified by myLauncher.
@@ -621,9 +627,10 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
 
   -- mod-[1..9], Switch to workspace N
   -- mod-shift-[1..9], Move client to workspace N
+  -- mod-control-shift-[1..9] @@ Copy client to workspace N
   [((m .|. modMask, k), windows $ f i)
       | (i, k) <- zip (XMonad.workspaces conf) [xK_1 .. xK_9]
-      , (f, m) <- [(W.greedyView, 0), (W.shift, shiftMask)]]
+      , (f, m) <- [(W.greedyView, 0), (W.shift, shiftMask), (copy, shiftMask .|. controlMask)]]
   ++
 
   -- mod-{w,e,r}, Switch to physical/Xinerama screens 1, 2, or 3
@@ -724,9 +731,7 @@ myMouseBindings (XConfig {XMonad.modMask = modMask}) = M.fromList $
 myStartupHook = do
   setWMName "Xmonad"
   spawn     "~/.xmonad/startup.sh"
-
-  spawn     "picom -b"
-  spawnOnce "mpd &"
+  spawnOnce     "picom -b"
   setDefaultCursor xC_left_ptr
 
 ------------------------------------------------------------------------
@@ -766,12 +771,10 @@ myXPromptConfig =
 ------------------------------------------------------------------------
 -- Run xmonad with all the defaults we set up.
 --
-
 main = do
 
   spawn     "nitrogen --restore &"
   spawn     "~/.xmonad/startup.sh"
-  spawn     "nitrogen --restore"
   -- spawn "feh --bg-center ~/.xmonad/1920x1200.jpg"
   --
   xmproc <- spawnPipe "xmobar ~/.xmonad/xmobarrc.hs"
@@ -791,10 +794,10 @@ main = do
                 ppCurrent = xmobarColor xmobarCurrentForeground xmobarCurrentBackground . wrap " " " "
                 , ppHiddenNoWindows = xmobarColor color8 "" .wrap " " " "        -- Hidden workspaces (no windows)
                 , ppVisible = xmobarColor color4 "" . wrap " " " " -- Visible but not current workspace (Xinerama only)
-                , ppHidden = xmobarColor color3  "" . wrap " " " " -- Hidden workspaces in xmobar
+                , ppHidden = xmobarColor color4  "" . wrap " " " " -- Hidden workspaces in xmobar
                 , ppTitle = xmobarColor color3 "" . shorten 50
                 , ppSep = " "
-               , ppLayout = xmobarColor color3 "" .wrap "[" "]"
+               , ppLayout = xmobarColor color4 "" .wrap "[" "]"
                 , ppOutput = hPutStrLn xmproc
          } 
          -- >> updatePointer (0.75, 0.75) (0.75, 0.75)
@@ -819,6 +822,6 @@ defaults = def {
     -- hooks, layouts
     layoutHook         = myLayout,
     handleEventHook    = handleEventHook def <+> fullscreenEventHook,
-    manageHook         =   namedScratchpadManageHook scratchpads <+> manageDocks <+> myManageHook,
+    manageHook         = namedScratchpadManageHook scratchpads <+> manageDocks <+> myManageHook,
     startupHook        = myStartupHook
 }
