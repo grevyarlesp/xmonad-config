@@ -2,6 +2,7 @@
 
 # Wallpaper 
 
+nitrogen --restore &
 # Power manager
 if [ -z "$(pgrep xfce4-power-manager)" ];  then
     xfce4-power-manager &
@@ -18,9 +19,9 @@ if [ -z "$(pgrep picom)" ];  then
 fi
 
 # # Network Applet
-if [ -z "$(pgrep nm-applet)" ];  then
-    nm-applet &
-fi
+# if [ -z "$(pgrep nm-applet)" ];  then
+#     nm-applet &
+# fi
 
 
 if [ -z "$(pgrep ibus-daemon)" ]; then

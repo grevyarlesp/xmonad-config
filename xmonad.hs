@@ -20,7 +20,7 @@ import XMonad.Hooks.ManageHelpers
 import qualified XMonad.Actions.FlexibleManipulate as Flex
 import XMonad.Layout.DecorationMadness
 import XMonad.Layout.BorderResize
-
+import XMonad.Layout.TrackFloating
 import XMonad.Hooks.SetWMName
 import XMonad.Hooks.EwmhDesktops (ewmh)
 import XMonad.Hooks.Place
@@ -80,7 +80,7 @@ import XMonad.Prompt.FuzzyMatch
 import XMonad.Util.NamedScratchpad
 import XMonad.Prompt.Shell 
 import XMonad.Actions.CopyWindow
-
+import XMonad.Actions.GridSelect
 ----------------------------mupdf--------------------------------------------
 -- Terminimport XMonad.Hooks.EwmhDesktopsal
 -- The preferred terminal program, which is used in a binding below and by
@@ -90,7 +90,7 @@ import XMonad.Actions.CopyWindow
 myTerminal = "~/.scripts/launch_kitty.sh"
 
 -- The command to lock the screen or show the screensaver.
-myScreensaver = "dm-tool lock"
+myScreensaver = "~/.scripts/lock.sh"
 
 -- The command to take a selective screenshot, where you select
 -- what you'd like to capture on the screen.
@@ -175,8 +175,6 @@ myManageHook =
       , isFullscreen                             --> doFullFloat
       ]
 
-
-
 ------------------------------------------------------------------------
 -- Layouts
 -- You can specify and transform your layouts by modifying these values.
@@ -189,34 +187,33 @@ myManageHook =
 
 outerGaps    = 0
 myGaps       = gaps [(U, outerGaps), (R, outerGaps), (L, outerGaps), (D, outerGaps)]
-addSpace     = renamed [CutWordsLeft 2] . spacing gap
+-- addSpace     = renamed [CutWordsLeft 2] . spacing gap
 tab          = avoidStruts
               $ renamed [Replace "Tabbed"]
-              $ addSpace
               -- $ gaps [(U, 0), (R, outerGaps), (L, outerGaps), (D, 0)]
                $ tabbedBottomAlways shrinkText myTabTheme
               -- $ tabBar shrinkText myTabTheme Bottom (gaps [(D, 18)] $ Tall 1 0.03 0.5))
 
 myTall = renamed [Replace "Tall"]
-          $ addSpace
+          $ addTopBar
           $ windowArrange 
           -- $ tabBar shrinkText myTabTheme Bottom (gaps[(D, 18)] $ (Tall 1 (3/100) (1/2)))
           $ tabBar shrinkText myTabTheme Bottom (gaps[(D, 18)] $ (ResizableTall 1 (3/100) (1/2) []))
 
 my3C = renamed [Replace "3C"]
+      $ addTopBar
       $ windowNavigation
-      $ addSpace
       $ tabBar shrinkText myTabTheme Bottom (gaps[(D, 18)] $ ThreeCol 1 (3/100) (1/2))
 
 myGrid = renamed [Replace "Grid"]
-      $ addSpace
+      $ addTopBar
       $ windowNavigation
       $ tabBar shrinkText myTabTheme Bottom (gaps [(D, 18)] $ Grid)
 
 
 myRez = renamed [Replace "TallR"]
+      $ addTopBar
       $ windowNavigation
-      $ addSpace
       $ tabBar shrinkText myTabTheme Bottom (gaps [(D, 18)] $ mouseResizableTile {draggerType = BordersDragger})
 
 layouts      = TL.toggleLayouts (avoidStruts myRez) (windowArrange (tab ||| avoidStruts (
@@ -264,16 +261,16 @@ treeselectAction myMenu = TS.treeselectAction myMenu
 tsDefaultConfig :: TS.TSConfig myMenu
 tsDefaultConfig = TS.TSConfig { 
                              TS.ts_hidechildren = True
-                           , TS.ts_background   = 0x00000000
+                           , TS.ts_background   = 0xc083a598
                            , TS.ts_font         = "xft:Sans-16"
-                           , TS.ts_node         = (0xff000000, 0xff50d0db)
-                           , TS.ts_nodealt      = (0xff000000, 0xff10b8d6)
+                           , TS.ts_node         = (0xff1d2021, 0xff83a598)
+                           , TS.ts_nodealt      = (0xff1d2021, 0xff85b6a3)
                            , TS.ts_highlight    = (0xffffffff, 0xffff0000)
-                           , TS.ts_extra        = 0xff0000ff
+                           , TS.ts_extra        = 0xffff0000
                            , TS.ts_node_width   = 200
                            , TS.ts_node_height  = 30
-                           , TS.ts_originX      = 0
-                           , TS.ts_originY      = 0
+                           , TS.ts_originX      = 20
+                           , TS.ts_originY      = 20
                            , TS.ts_indent       = 80
                            , TS.ts_navigate     = myTreeNavigation
                            }
@@ -318,6 +315,18 @@ myTreeNavigation = M.fromList
     , ((mod4Mask .|. altMask, xK_p), TS.moveTo ["dev", "programming", "python"])
     , ((mod4Mask .|. altMask, xK_s), TS.moveTo ["dev", "programming", "shell"])
     ]
+
+gsconfig2 colorizer = (buildDefaultGSConfig colorizer) { gs_cellheight = 50, gs_cellwidth = 200 }
+-- greenColorizer = colorRangeFromClassName
+--                      black            -- lowest inactive bg
+--                      (0x70,0xFF,0x70) -- highest inactive bg
+--                      black            -- active bg
+--                      white            -- inactive fg
+--                      white            -- active fg
+--   where black = minBound
+--         white = maxBound
+
+
 ------------------------------------------------------------------------
 -- Colors and borders
 
@@ -330,7 +339,7 @@ xmobarCurrentForeground = background
 xmobarCurrentWorkspaceColor = "#51AFEF"
 
 -- Width of the window border in pixels.
-myBorderWidth = 2
+myBorderWidth = 0
 
 myNormalBorderColor     = color8
 myFocusedBorderColor    = color4
@@ -407,18 +416,18 @@ myWideFont  = "Utf8:JetBrains Mono:"
 topBarTheme = def
     {
       fontName              = myFont
-    , inactiveBorderColor   = base03
-    , inactiveColor         = base03
-    , inactiveTextColor     = base03
-    , activeBorderColor     = active
-    , activeColor           = active
-    , activeTextColor       = active
+    , activeColor           = color4
+    , inactiveColor         = color8
+    , activeBorderColor     = color4
+    , inactiveBorderColor   = color8
+    , activeTextColor       = color4
+    , inactiveTextColor     = color8
     , urgentBorderColor     = color1
-    , urgentTextColor       = yellow
+    , urgentTextColor       = color1
     , decoHeight            = topbar
     }
 
--- addTopBar =  noFrillsDeco shrinkText topBarTheme
+addTopBar =  noFrillsDeco shrinkText topBarTheme
 
 myTabTheme = def
     { fontName = "xft:LiberationSans-Bold:size=10:antialias=true,ipamincho:size=10"
@@ -442,7 +451,7 @@ scratchpads = [
     role = stringProperty "WM_WINDOW_ROLE"
     spawnTerm = "GLFW_IM_MODULE=ibus kitty --name scratchpad --session ~/.config/kitty/todo.conf"
     spawnWiki = "GLFW_IM_MODULE=ibus kitty --name scratchpad_wiki --session ~/.config/kitty/vimwiki.conf"
-    spawnGen = "GLFW_IM_MODULE=ibus kitty --name scratchpad_gen"
+    spawnGen = "GLFW_IM_MODULE=ibus kitty --name scratchpad_gen --title Scratchpad"
     findTerm = resource =? "scratchpad"
     findGen = resource =? "scratchpad_gen"
     findWiki = resource =? "scratchpad_wiki"
@@ -472,10 +481,15 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
   ----------------------------------------------------------------------
   -- Custom key bindings
   --
+  
   [
    ((modMask, xK_v ), windows copyToAll) -- @@ Make focused window always visible
  , ((modMask .|. shiftMask, xK_v ),  killAllOtherCopies) -- @@ Toggle window state back
  , ((modMask .|. shiftMask, xK_c     ), kill1) -- @@ Close the focused window
+  ]
+  ++
+  [
+   ((modMask, xK_p), goToSelected $ gsconfig2 defaultColorizer)
   ]
   ++
   [ ((modMask, xK_d),
@@ -490,7 +504,7 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
 
   -- Spawn the launcher using command specified by myLauncher.
   -- Use this to launch programs without a key binding.
-  , ((modMask, xK_p),
+  , ((modMask, xK_bracketleft),
      spawn myLauncher)
 
   , ((modMask .|. shiftMask, xK_Return),
@@ -773,8 +787,6 @@ myXPromptConfig =
 --
 main = do
 
-  spawn     "nitrogen --restore &"
-  spawn     "~/.xmonad/startup.sh"
   -- spawn "feh --bg-center ~/.xmonad/1920x1200.jpg"
   --
   xmproc <- spawnPipe "xmobar ~/.xmonad/xmobarrc.hs"

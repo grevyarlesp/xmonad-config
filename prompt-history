@@ -1,1 +1,1 @@
-fromList [("Run: ",["firefox","dolphin","keepassxc","dolphin","echo \"hello\"","KDECONNECT/"])]
+fromList [("Run: ",["VirtualBox","firefox","firefox","dolphin","keepassxc","dolphin","echo \"hello\"","KDECONNECT/"])]
