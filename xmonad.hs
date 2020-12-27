@@ -489,6 +489,13 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
   --
   
   [
+  ((modMask, xK_bracketright),
+     spawn "~/.xmonad/pomobar.sh")
+  , ((modMask .|. shiftMask, xK_bracketright),
+     spawn "~/.xmonad/pomobar_stop.sh")
+  ]
+  ++
+  [
    ((modMask, xK_v ), windows copyToAll) -- @@ Make focused window always visible
  , ((modMask .|. shiftMask, xK_v ),  killAllOtherCopies) -- @@ Toggle window state back
  , ((modMask .|. shiftMask, xK_c     ), kill1) -- @@ Close the focused window
@@ -801,6 +808,10 @@ myXPromptConfig =
 
 -- Run xmonad with all the defaults we set up.
 --
+
+padding :: String
+padding = replicate 100 ' '
+
 main = do
 
   -- spawn "feh --bg-center ~/.xmonad/1920x1200.jpg"
@@ -808,6 +819,7 @@ main = do
   xmproc <- spawnPipe "xmobar ~/.xmonad/xmobarrc.hs"
   -- spawn "killall xmobar"
   -- restart "xmonad" True
+
 
   xmonad $ docks
          $ withNavigation2DConfig myNav2DConf
@@ -824,7 +836,7 @@ main = do
                 , ppHiddenNoWindows = xmobarColor color8 "" .wrap " " " "        -- Hidden workspaces (no windows)
                 , ppVisible = xmobarColor color4 "" . wrap " " " " -- Visible but not current workspace (Xinerama only)
                 , ppHidden = xmobarColor color4  "" . wrap " " " " -- Hidden workspaces in xmobar
-                , ppTitle = xmobarColor color3 "" . shorten 50
+                , ppTitle = xmobarColor background color4 . shorten 100 .wrap " " padding
                 , ppSep = " "
                , ppLayout = xmobarColor color4 "" .wrap "[" "]"
                 , ppOutput = hPutStrLn xmproc

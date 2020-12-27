@@ -13,6 +13,10 @@
 #------------------------------------------------
 
 #Timer 
+
+# if [ "$(pgrep pomobar.sh | wc -l)" -gt "1" ]; then 
+#     killall pomobar.sh
+# fi
  
 msgId="991050"
 
@@ -76,7 +80,7 @@ while [ 1 ]; do
         theseconds=$(printf "%02d" $((s=${secs}%60)))
         # dunstify -a "Pomodoro Timer" -u "critical" -t 1500 "Timer" "$theword $theminutes:$theseconds" -r "$msgId"
         # echo -ne "$theword $theminutes:$theseconds\033[0K\r" > ~/.xmonad/fifo
-        echo "$theword $theminutes:$theseconds" > fifo
+        echo "$theword $theminutes:$theseconds" > ~/.xmonad/fifo
 
         sleep 1
         : $((secs--))

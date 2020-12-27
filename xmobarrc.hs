@@ -32,7 +32,7 @@ Config { font    = "xft:Inconsolata Nerd Font:size=9:antialias=true:hinting=true
                              ] 50
 
                       -- Time and date
-                    , Run Date "<fc=#FB4934>\xf133 %H:%M %a %F</fc>" "date" 50
+                    , Run Date "<fc=#FB4934>\xf133 %H:%M %a %d %m %Y</fc>" "date" 50
                     , Run DynNetwork     [ "--template" , "<fc=#8ec07c><dev> \xf175<rx>KB \xf176<tx>KB</fc>"
                               ,"--Low"      , "1000"       -- units: B/s
                              , "--High"     , "5000"       -- units: B/s
