@@ -119,7 +119,7 @@ xmobarEscape = concatMap doubleLts
 
 myWorkspaces :: [String]
 myWorkspaces = clickable . map xmobarEscape
-               $ ["1:\xf314 ", "2:\xf003 ", "3:\xf0c3 ", "4:\xe62b ","5:\xe62b ", "6:\xf016 ", "7:\xf044 ", "8:\xf126","9:\xf152 "]
+               $ ["1 \xfbe2 ", "2 \xf269 ", "3 \xf0c3 ", "4 \xe62b ","5 \xe62b ", "6 \xf016 ", "7 \xf044 ", "8 \xf126","9 \xf152 "]
   where
         clickable l = [ "<action=xdotool key super+" ++ show n ++ ">" ++ ws ++ "</action>" |
                       (i,ws) <- zip [1..9] l,
@@ -162,6 +162,7 @@ myManageHook =
       , resource  =? "desktop_window"               --> doIgnore
       , className =? "Galculator"                   --> doCenterFloat
       , className =? "Steam"                        --> doCenterFloat
+      , className =? "popup-bottom-center"          --> doCenterFloat
       , className =? "Gimp"                         --> doCenterFloat
       , resource  =? "gpicview"                     --> doCenterFloat
       , className =? "MPlayer"                      --> doCenterFloat
@@ -187,7 +188,7 @@ myManageHook =
 
 outerGaps    = 0
 myGaps       = gaps [(U, outerGaps), (R, outerGaps), (L, outerGaps), (D, outerGaps)]
--- addSpace     = renamed [CutWordsLeft 2] . spacing gap
+addSpace     = renamed [CutWordsLeft 2] . spacing gap
 tab          = avoidStruts
               $ renamed [Replace "Tabbed"]
               -- $ gaps [(U, 0), (R, outerGaps), (L, outerGaps), (D, 0)]
@@ -195,26 +196,30 @@ tab          = avoidStruts
               -- $ tabBar shrinkText myTabTheme Bottom (gaps [(D, 18)] $ Tall 1 0.03 0.5))
 
 myTall = renamed [Replace "Tall"]
-          $ addTopBar
+          -- $ addTopBar
+          $ addSpace
           $ windowArrange 
           -- $ tabBar shrinkText myTabTheme Bottom (gaps[(D, 18)] $ (Tall 1 (3/100) (1/2)))
-          $ tabBar shrinkText myTabTheme Bottom (gaps[(D, 18)] $ (ResizableTall 1 (3/100) (1/2) []))
+          $ tabBar shrinkText myTabTheme Bottom (gaps[(D, 16)] $ (ResizableTall 1 (3/100) (1/2) []))
 
-my3C = renamed [Replace "3C"]
-      $ addTopBar
+my3C = renamed [Replace "|||"]
+      -- $ addTopBar
       $ windowNavigation
-      $ tabBar shrinkText myTabTheme Bottom (gaps[(D, 18)] $ ThreeCol 1 (3/100) (1/2))
+      $ addSpace
+      $ tabBar shrinkText myTabTheme Bottom (gaps[(D, 16)] $ ThreeCol 1 (3/100) (1/2))
 
-myGrid = renamed [Replace "Grid"]
-      $ addTopBar
+myGrid = renamed [Replace " \xfc56 "]
+      -- $ addTopBar
       $ windowNavigation
-      $ tabBar shrinkText myTabTheme Bottom (gaps [(D, 18)] $ Grid)
+      $ addSpace
+      $ tabBar shrinkText myTabTheme Bottom (gaps [(D, 16)] $ Grid)
 
 
 myRez = renamed [Replace "TallR"]
-      $ addTopBar
+      -- $ addTopBar
       $ windowNavigation
-      $ tabBar shrinkText myTabTheme Bottom (gaps [(D, 18)] $ mouseResizableTile {draggerType = BordersDragger})
+      $ addSpace
+      $ tabBar shrinkText myTabTheme Bottom (gaps [(D, 16)] $ mouseResizableTile {draggerType = BordersDragger})
 
 layouts      = TL.toggleLayouts (avoidStruts myRez) (windowArrange (tab ||| avoidStruts (
                       myTall ||| my3C ||| myGrid
@@ -245,7 +250,7 @@ treeselectAction myMenu = TS.treeselectAction myMenu
   [
     Node (TS.TSNode "Session" "Session" (return())) 
      [
-       Node(TS.TSNode "Lock" "Lock the system" (spawn "dm-tool switch-to-greeter")) []
+       Node(TS.TSNode "Lock" "Lock the system" (spawn myScreensaver)) []
        , Node(TS.TSNode "Suspend" "Suspend" (spawn "systemctl suspend")) []
        , Node(TS.TSNode "Logout" "logout" (io (exitWith ExitSuccess))) []
        , Node(TS.TSNode "Reboot" "Reboot the system" (spawn "systemctl reboot")) []
@@ -306,7 +311,6 @@ myTreeNavigation = M.fromList
     , ((mod4Mask, xK_z), TS.moveTo ["dev", "virtualization"])
     , ((mod4Mask, xK_g), TS.moveTo ["graphics", "gimp"])
     , ((mod4Mask, xK_i), TS.moveTo ["graphics", "image viewer"])
-    , ((mod4Mask, xK_a), TS.moveTo ["music", "audio editor"])
     , ((mod4Mask, xK_u), TS.moveTo ["music", "music player"])
     , ((mod4Mask, xK_o), TS.moveTo ["video", "obs"])
     , ((mod4Mask, xK_v), TS.moveTo ["video", "video player"])
@@ -339,7 +343,7 @@ xmobarCurrentForeground = background
 xmobarCurrentWorkspaceColor = "#51AFEF"
 
 -- Width of the window border in pixels.
-myBorderWidth = 0
+myBorderWidth = 2
 
 myNormalBorderColor     = color8
 myFocusedBorderColor    = color4
@@ -388,7 +392,7 @@ color7       = "#d5c4a1"
 color15      = "#fbf1c7"
 
 -- sizes
-gap         = 2
+gap         = 0
 topbar      = 5
 border      = 0
 prompt      = 5
@@ -427,17 +431,18 @@ topBarTheme = def
     , decoHeight            = topbar
     }
 
-addTopBar =  noFrillsDeco shrinkText topBarTheme
+-- addTopBar =  noFrillsDeco shrinkText topBarTheme
 
 myTabTheme = def
-    { fontName = "xft:LiberationSans-Bold:size=10:antialias=true,ipamincho:size=10"
+    -- { fontName = "xft:LiberationSans-Bold:size=9:antialias=true,ipamincho:size=10"
+    { fontName = "xft:Sarasa Gothic J:size=9:antialias=true,ipamincho:size=10"
     , activeColor           = color4
     , inactiveColor         = color8
     , activeBorderColor     = color4
     , inactiveBorderColor   = color8
     , activeTextColor       = background
     , inactiveTextColor     = foreground
-    , decoHeight            = 18
+    , decoHeight            = 16
     }
 
 --
@@ -477,6 +482,7 @@ scratchpads = [
 myModMask = mod4Mask
 altMask = mod1Mask
 
+
 myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
   ----------------------------------------------------------------------
   -- Custom key bindings
@@ -489,7 +495,9 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
   ]
   ++
   [
-   ((modMask, xK_p), goToSelected $ gsconfig2 defaultColorizer)
+   ((modMask, xK_y), goToSelected $ gsconfig2 defaultColorizer)
+   , ((modMask, xK_p), goToSelected $ gsconfig2 defaultColorizer)
+   , ((modMask, xK_F8), spawn "~/.scripts/displayselect")
   ]
   ++
   [ ((modMask, xK_d),
@@ -611,8 +619,13 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
   -- Expand the master area.
   , ((modMask, xK_l),
      sendMessage Expand)
-  , ((modMask, xK_a), sendMessage ShrinkSlave) -- %! Shrink a slave area
-  , ((modMask, xK_z), sendMessage ExpandSlave) -- %! Expand a slave area
+  -- , ((modMask, xK_a), sendMessage ShrinkSlave) -- %! Shrink a slave area
+  -- , ((modMask, xK_z), sendMessage ExpandSlave) -- %! Expand a slave area
+  --
+  , ((modMask, xK_z), incWindowSpacing 2) -- %! Inc Gap
+  , ((modMask, xK_x), decWindowSpacing 2) -- %! Dec Gap
+  , ((modMask .|. shiftMask, xK_a), setScreenWindowSpacing 0) -- %! Inc Gap
+  , ((modMask , xK_a), toggleWindowSpacingEnabled) -- %! Inc Gap
 
   -- Push window back into tiling.
   , ((modMask, xK_t),
@@ -745,6 +758,7 @@ myMouseBindings (XConfig {XMonad.modMask = modMask}) = M.fromList $
 myStartupHook = do
   setWMName "Xmonad"
   spawn     "~/.xmonad/startup.sh"
+  setWindowSpacingEnabled False
   spawnOnce     "picom -b"
   setDefaultCursor xC_left_ptr
 
@@ -783,6 +797,8 @@ myXPromptConfig =
     }
 
 ------------------------------------------------------------------------
+
+
 -- Run xmonad with all the defaults we set up.
 --
 main = do
@@ -792,6 +808,7 @@ main = do
   xmproc <- spawnPipe "xmobar ~/.xmonad/xmobarrc.hs"
   -- spawn "killall xmobar"
   -- restart "xmonad" True
+
   xmonad $ docks
          $ withNavigation2DConfig myNav2DConf
          $ additionalNav2DKeys (xK_Up, xK_Left, xK_Down, xK_Right)
