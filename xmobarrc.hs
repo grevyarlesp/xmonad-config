@@ -60,5 +60,5 @@ Config { font    = "xft:Inconsolata Nerd Font:size=9:antialias=true:hinting=true
                     ]
        , sepChar = "%"
        , alignSep = "}{"
-           , template = "<action=`~/.scripts/rofi_app_launcher.sh`><fc=#FABD2F><icon=haskell_20.xpm/></fc></action> %UnsafeStdinReader% }{<fc=#1d2021,#83a598></fc><action=`kitty --session ~/.config/kitty/nmtui.conf`>%dynnetwork% %wi%</action><fc=#83a598></fc><fc=#fcfcfc></fc><action=`xfce4-power-manager-settings`> %battery% </action><fc=#fcfcfc></fc><action=`~/.scripts/Toggle_Keymap.sh`>%kbd%</action><fc=#fcfcfc></fc> %alsa:pulse:Master% %pipe% %date%<fc=#1d2021,#83a598></fc> %trayerpad%"
+           , template = "<action=`~/.scripts/rofi_app_launcher.sh`><fc=#FABD2F><icon=haskell_20.xpm/></fc></action> %UnsafeStdinReader% }{<fc=#1d2021,#83a598></fc><action=`kitty --session ~/.config/kitty/nmtui.conf`>%dynnetwork% %wi%</action><fc=#83a598></fc><fc=#fcfcfc></fc><action=`xfce4-power-manager-settings`> %battery% </action><fc=#fcfcfc></fc><action=`~/.scripts/Toggle_Keymap.sh`>%kbd%</action><fc=#fcfcfc></fc> %alsa:pulse:Master% <fc=#fb4934>%pipe%</fc> %date%<fc=#1d2021,#83a598></fc> %trayerpad%"
        }
