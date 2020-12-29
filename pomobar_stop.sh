@@ -1,4 +1,4 @@
 #! /bin/bash
 
 killall pomobar.sh;
-echo "Timer" > ~/.xmonad/fifo
+echo " Timer" > ~/.xmonad/fifo

@@ -32,8 +32,8 @@ Config { font    = "xft:Inconsolata Nerd Font:size=9:antialias=true:hinting=true
                              ] 50
 
                       -- Time and date
-                    , Run Date "<fc=#FB4934>\xf133 %H:%M %a %d %m %Y</fc>" "date" 50
-                    , Run DynNetwork     [ "--template" , "<fc=#8ec07c><dev> \xf175<rx>KB \xf176<tx>KB</fc>"
+                    , Run Date "<fc=#83a598></fc><fc=#FF0025,#83a598>\xf133 %H:%M %a %d %m %Y</fc>" "date" 50
+                    , Run DynNetwork     [ "--template" , " <fc=#8ec07c><dev> \xf175<rx>KB \xf176<tx>KB</fc>"
                               ,"--Low"      , "1000"       -- units: B/s
                              , "--High"     , "5000"       -- units: B/s
                              , "--low"      , "darkgreen"
@@ -60,5 +60,5 @@ Config { font    = "xft:Inconsolata Nerd Font:size=9:antialias=true:hinting=true
                     ]
        , sepChar = "%"
        , alignSep = "}{"
-           , template = "<action=`~/.scripts/rofi_app_launcher.sh`><fc=#FABD2F><icon=haskell_20.xpm/></fc></action> %UnsafeStdinReader%}{<action=`kitty --session ~/.config/kitty/nmtui.conf`>%dynnetwork% %wi%</action><fc=#665c24>|</fc><fc=#83a598>%pipe%</fc><fc=#665c24>|</fc><action=`xfce4-power-manager-settings`> %battery% </action><fc=#665c24>|</fc><action=`~/.scripts/Toggle_Keymap.sh`>%kbd%</action><fc=#665c24>|</fc> %alsa:pulse:Master%<fc=#665c24>|</fc>%date% %trayerpad%"
+           , template = "<action=`~/.scripts/rofi_app_launcher.sh`><fc=#FABD2F><icon=haskell_20.xpm/></fc></action> %UnsafeStdinReader% }{<fc=#1d2021,#83a598></fc><action=`kitty --session ~/.config/kitty/nmtui.conf`>%dynnetwork% %wi%</action><fc=#83a598></fc><fc=#fcfcfc></fc><action=`xfce4-power-manager-settings`> %battery% </action><fc=#fcfcfc></fc><action=`~/.scripts/Toggle_Keymap.sh`>%kbd%</action><fc=#fcfcfc></fc> %alsa:pulse:Master% %pipe% %date%<fc=#1d2021,#83a598></fc> %trayerpad%"
        }
