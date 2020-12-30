@@ -119,7 +119,7 @@ xmobarEscape = concatMap doubleLts
 
 myWorkspaces :: [String]
 myWorkspaces = clickable . map xmobarEscape
-               $ ["1 \xfbe2 ", "2 \xf269 ", "3 \xf0c3 ", "4 \xe62b ","5 \xe62b ", "6 \xf016 ", "7 \xf044 ", "8 \xf126","9 \xf152 "]
+               $ ["1 \xfbe2  ", "2 \xf269  ", "3 \xf0c3 ", "4 \xe62b ","5 \xe62b ", "6 \xf016  ", "7 \xf044 ", "8 \xf126","9 \xf152  "]
   where
         clickable l = [ "<action=xdotool key super+" ++ show n ++ ">" ++ ws ++ "</action>" |
                       (i,ws) <- zip [1..9] l,
@@ -208,7 +208,7 @@ my3C = renamed [Replace "|||"]
       $ addSpace
       $ tabBar shrinkText myTabTheme Bottom (gaps[(D, 16)] $ ThreeCol 1 (3/100) (1/2))
 
-myGrid = renamed [Replace " \xfc56 "]
+myGrid = renamed [Replace "\xfc56"]
       -- $ addTopBar
       $ windowNavigation
       $ addSpace
@@ -836,9 +836,9 @@ main = do
                 , ppHiddenNoWindows = xmobarColor color8 "" .wrap " " " "        -- Hidden workspaces (no windows)
                 , ppVisible = xmobarColor color4 "" . wrap " " " " -- Visible but not current workspace (Xinerama only)
                 , ppHidden = xmobarColor color4  "" . wrap " " " " -- Hidden workspaces in xmobar
-                , ppTitle = xmobarColor background color4 . shorten 100 .wrap " " padding
+                , ppTitle = xmobarColor color3 "" . shorten 100
                 , ppSep = " "
-               , ppLayout = xmobarColor color4 "" .wrap "[" "]"
+               , ppLayout = xmobarColor color4 "" .wrap "" ""
                 , ppOutput = hPutStrLn xmproc
          } 
          -- >> updatePointer (0.75, 0.75) (0.75, 0.75)
