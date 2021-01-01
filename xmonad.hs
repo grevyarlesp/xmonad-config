@@ -435,7 +435,7 @@ topBarTheme = def
 
 myTabTheme = def
     -- { fontName = "xft:LiberationSans-Bold:size=9:antialias=true,ipamincho:size=10"
-    { fontName = "xft:Sarasa Gothic J:size=9:antialias=true,ipamincho:size=10,Inconsolata Nerd Font:size=9:antialias=true:hinting=true"
+    { fontName = "xft:Sarasa Gothic J:size=9:antialias=true"
     , activeColor           = color4
     , inactiveColor         = color8
     , activeBorderColor     = color4
