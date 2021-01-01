@@ -25,14 +25,14 @@ Config { font    = "xft:Sarasa Gothic J:size=9:antialias=true:hinting=true, Inco
                                        -- discharging status
                                        , "-o", "<left>% (<timeleft>)"
                                        -- AC "on" status
-                                       , "-O", "<fc=#dAA520>Charging</fc> <left>%"
+                                       , "-O", " <left>%"
                                        -- chaged status
                                        , "-i", "<fc=#b8bb26>Charged</fc>"
-                                        , "--on-icon-pattern", "\xf583 "
-                                        , "--idle-icon-pattern", "<fc=#b8bb26>\xf584 </fc>"
-                                        , "--highs", "<fc=#b8bb26>\xf581</fc> "
-                                        , "--mediums", "<fc=#fabd2f>\xf57d</fc> "
-                                        , "--lows", "<fc=#fa4934>\xf57a</fc> "
+                                        , "--on-icon-pattern", "<fc=#daa520>\xf583</fc>  "
+                                        , "--idle-icon-pattern", "<fc=#b8bb26>\xf584  </fc>"
+                                        , "--highs", "<fc=#b8bb26>\xf581  </fc>"
+                                        , "--mediums", "<fc=#fabd2f>\xf57d  </fc> "
+                                        , "--lows", "<fc=#fa4934>\xf57a  </fc> "
                              ] 50
 
                       -- Time and date
@@ -54,7 +54,6 @@ Config { font    = "xft:Sarasa Gothic J:size=9:antialias=true:hinting=true, Inco
                     , Run Alsa "pulse" "Master" ["-t", "<fc=#B8BB26>\xf028  <volume>%<status></fc>" 
                       
                     ]
-
                     , Run Kbd            [ ("de" , "<fc=#FABD2F>\xf40b  DE</fc>")
                              , ("us"         , "<fc=#FABD2F>\xf40b  US</fc>")
                              ]
@@ -66,5 +65,5 @@ Config { font    = "xft:Sarasa Gothic J:size=9:antialias=true:hinting=true, Inco
                     ]
        , sepChar = "%"
        , alignSep = "}{"
-           , template = "<action=`~/.scripts/rofi_app_launcher.sh`><fc=#FABD2F><icon=haskell_20.xpm/></fc></action> %UnsafeStdinReader% }{ <action=`kitty --session ~/.config/kitty/nmtui.conf`>%dynnetwork% %wi%</action><fc=#83a598>|</fc><action=`xfce4-power-manager-settings`> %battery% </action><fc=#83a598>|</fc><action=`~/.scripts/Toggle_Keymap.sh`>%kbd%</action><fc=#83a598>|</fc> %alsa:pulse:Master% <fc=#83a598>|</fc> <fc=#fb4934>%pipe%</fc>  %date% %trayerpad%"
+           , template = "<action=`~/.scripts/rofi_app_launcher.sh`><fc=#83a598> START</fc></action> %UnsafeStdinReader% }{ <action=`kitty --session ~/.config/kitty/nmtui.conf`>%dynnetwork% %wi%</action><fc=#83a598>|</fc><action=`xfce4-power-manager-settings`> %battery% </action><fc=#83a598>|</fc><action=`~/.scripts/Toggle_Keymap.sh`>%kbd%</action><fc=#83a598>|</fc> %alsa:pulse:Master% <fc=#83a598>|</fc> <fc=#fb4934>%pipe%</fc>  %date% %trayerpad%"
        }
