@@ -831,16 +831,16 @@ main = do
                                False
          $ ewmh
          $ defaults {
-         logHook = dynamicLogWithPP xmobarPP {
+         logHook = dynamicLogWithPP (namedScratchpadFilterOutWorkspacePP xmobarPP {
                 ppCurrent = xmobarColor xmobarCurrentForeground xmobarCurrentBackground . wrap " " " "
                 , ppHiddenNoWindows = xmobarColor color8 "" .wrap " " " "        -- Hidden workspaces (no windows)
                 , ppVisible = xmobarColor color4 "" . wrap " " " " -- Visible but not current workspace (Xinerama only)
                 , ppHidden = xmobarColor color4  "" . wrap " " " " -- Hidden workspaces in xmobar
                 , ppTitle = xmobarColor color3 "" . shorten 100
                 , ppSep = " "
-               , ppLayout = xmobarColor color4 "" .wrap "" ""
+               , ppLayout = xmobarColor color4 "" .wrap "<box type=Full color=#83a598> " " </box>"
                 , ppOutput = hPutStrLn xmproc
-         } 
+         })
          -- >> updatePointer (0.75, 0.75) (0.75, 0.75)
       }
 

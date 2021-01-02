@@ -37,7 +37,7 @@ Config { font    = "xft:Sarasa Gothic J:size=9:antialias=true:hinting=true, Inco
 
                       -- Time and date
                     , Run Date "<fc=#fb4934>\xf133  %H:%M %a %d %m %Y </fc>" "date" 50
-                    , Run DynNetwork     [ "--template" , " <fc=#8ec07c><dev> \xf175<rx>KB \xf176<tx>KB</fc>"
+                    , Run DynNetwork     [ "--template" ,"<box type=Full> <fc=#8ec07c>\xfb2b  \xf175<rx>KB \xf176<tx>KB </fc></box>"
                               ,"--Low"      , "1000"       -- units: B/s
                              , "--High"     , "5000"       -- units: B/s
                              , "--low"      , "#fa4934"
@@ -47,7 +47,9 @@ Config { font    = "xft:Sarasa Gothic J:size=9:antialias=true:hinting=true, Inco
                                   , "--devices", "p4p2"
                              ] 10
                     , Run Wireless "" [
-                    "--template", "<fc=#8ec07c><qualitybar></fc>"
+                    "--template", " <box type=Full> <fc=#8ec07c>\xfaa8  <qualityipat><qualitybar></fc> </box>"
+                    -- ,"--", "--quality-icon-pattern", "123"
+                    
                     ] 50
 
                       -- Volume control
