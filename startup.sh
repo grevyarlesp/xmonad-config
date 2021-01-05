@@ -24,9 +24,10 @@ fi
 # fi
 
 
-if [ -z "$(pgrep ibus-daemon)" ]; then
-    ibus-daemon -drx &
-fi
+# if [ -z "$(pgrep ibus-daemon)" ]; then
+#     ibus-daemon -drx &
+# fi
+fcitx -dr
 
 if [ -z "$(pgrep dunst)" ]; then
     dunst &

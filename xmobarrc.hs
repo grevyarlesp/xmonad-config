@@ -3,9 +3,10 @@
 -- you can find weather location codes here: http://weather.noaa.gov/index.html
 
 
-Config { font    = "xft:Sarasa Gothic J:size=9:antialias=true:hinting=true, Inconsolata Nerd Font:size=9:antialias=true:hinting=true,Inconsolata Nerd Font Bold:size=9:antialias=true:hinting=true,Sarasa Gothic J:size=9:antialias=true:hinting=true"
+Config { font    = "xft:Sarasa Gothic J:size=9:antialias=true:hinting=true,Inconsolata Nerd Font:size=9"
        -- , additionalFonts = [ "xft:Wuncon Siji:pixelsize=13" ]
        , bgColor = "#1d2021"
+       , alpha = 255
        , fgColor = "#00acc1"
        -- On the Top, 1000% screen width
        , position = Top
@@ -15,7 +16,7 @@ Config { font    = "xft:Sarasa Gothic J:size=9:antialias=true:hinting=true, Inco
        , iconRoot = "/home/hts/.xmonad/xpm/"  -- default: "."
        , commands = [
                     Run Com "/home/hts/.xmonad/trayer-padding-icon.sh" [] "trayerpad" 10
-                    , Run Battery       [ "--template" , "<leftipat> <acstatus>"
+                    , Run Battery       [ "--template" , "<box type=Full color=#b8bb26> <leftipat> <acstatus> </box>"
                              , "--Low"      , "10"        -- units: %
                              , "--High"     , "80"        -- units: %
                              , "--low"      , "#fa4934"
@@ -27,7 +28,7 @@ Config { font    = "xft:Sarasa Gothic J:size=9:antialias=true:hinting=true, Inco
                                        -- AC "on" status
                                        , "-O", " <left>%"
                                        -- chaged status
-                                       , "-i", "<fc=#b8bb26>Charged</fc>"
+                                       , "-i", "<fc=#b8bb26>Full</fc>"
                                         , "--on-icon-pattern", "<fc=#daa520>\xf583</fc>  "
                                         , "--idle-icon-pattern", "<fc=#b8bb26>\xf584  </fc>"
                                         , "--highs", "<fc=#b8bb26>\xf581  </fc>"
@@ -36,8 +37,8 @@ Config { font    = "xft:Sarasa Gothic J:size=9:antialias=true:hinting=true, Inco
                              ] 50
 
                       -- Time and date
-                    , Run Date "<fc=#fb4934>\xf133  %H:%M %a %d %m %Y </fc>" "date" 50
-                    , Run DynNetwork     [ "--template" ,"<box type=Full> <fc=#8ec07c>\xfb2b  \xf175<rx>KB \xf176<tx>KB </fc></box>"
+                    , Run Date "<box type=Full color=#fb4934><fc=#fb4934> \xf5ef  <fc=#fabd2f>%H:%M</fc> %a %d %m %Y </fc></box>" "date" 10
+                    , Run DynNetwork     [ "--template" ,"<box type=Full color=#8ec07c> <fc=#8ec07c>\xf63a  \xf175<rx>KB \xf176<tx>KB </fc></box>"
                               ,"--Low"      , "1000"       -- units: B/s
                              , "--High"     , "5000"       -- units: B/s
                              , "--low"      , "#fa4934"
@@ -47,17 +48,17 @@ Config { font    = "xft:Sarasa Gothic J:size=9:antialias=true:hinting=true, Inco
                                   , "--devices", "p4p2"
                              ] 10
                     , Run Wireless "" [
-                    "--template", " <box type=Full> <fc=#8ec07c>\xfaa8  <qualityipat><qualitybar></fc> </box>"
+                    "--template", " <box type=Full color=#8ec07c> <fc=#8ec07c>\xfaa8  <qualityipat><qualitybar></fc> </box>"
                     -- ,"--", "--quality-icon-pattern", "123"
                     
                     ] 50
 
                       -- Volume control
-                    , Run Alsa "pulse" "Master" ["-t", "<fc=#B8BB26>\xf028  <volume>%<status></fc>" 
-                      
+                    , Run Alsa "pulse" "Master" ["-t", "<box type=Full color=#B8BB26> <fc=#B8BB26>\xf028  <volume>%<status></fc> </box>" 
+                    -- , "--" , "--on", "<fc=#B8BB26>[on]"
                     ]
-                    , Run Kbd            [ ("de" , "<fc=#FABD2F>\xf40b  DE</fc>")
-                             , ("us"         , "<fc=#FABD2F>\xf40b  US</fc>")
+                    , Run Kbd            [ ("de" , "<box type=Full color=#fabd2f> <fc=#FABD2F>\xf40b  DE</fc> </box>")
+                             , ("us"         , "<box type=Full color=#fabd2f> <fc=#FABD2F>\xf40b  US</fc> </box>")
                              ]
 
                     , Run PipeReader "\xe386 Timer:/home/hts/.xmonad/fifo" "pipe"
@@ -67,5 +68,5 @@ Config { font    = "xft:Sarasa Gothic J:size=9:antialias=true:hinting=true, Inco
                     ]
        , sepChar = "%"
        , alignSep = "}{"
-           , template = "<action=`~/.scripts/rofi_app_launcher.sh`><fc=#83a598> START</fc></action> %UnsafeStdinReader% }{ <action=`kitty --session ~/.config/kitty/nmtui.conf`>%dynnetwork% %wi%</action><fc=#83a598>|</fc><action=`xfce4-power-manager-settings`> %battery% </action><fc=#83a598>|</fc><action=`~/.scripts/Toggle_Keymap.sh`>%kbd%</action><fc=#83a598>|</fc> %alsa:pulse:Master% <fc=#83a598>|</fc> <fc=#fb4934>%pipe%</fc>  %date% %trayerpad%"
+           , template = "<action=`~/.scripts/rofi_app_launcher.sh`><fc=#1d2021,#83a598><box type=Full color=#83a598>    </box></fc></action> %UnsafeStdinReader% }{ <action=`kitty --session ~/.config/kitty/nmtui.conf`>%dynnetwork%%wi%</action><action=`xfce4-power-manager-settings`> %battery% </action><action=`~/.scripts/Toggle_Keymap.sh`>%kbd%</action> %alsa:pulse:Master% <box type=Full color=#fa4934><fc=#fa4934> %pipe% </fc></box> %date% <box type=Full color=#83a598>%trayerpad%</box>"
        }

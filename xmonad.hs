@@ -25,6 +25,7 @@ import XMonad.Hooks.SetWMName
 import XMonad.Hooks.EwmhDesktops (ewmh)
 import XMonad.Hooks.Place
 import XMonad.Hooks.InsertPosition
+import qualified XMonad.Layout.Magnifier as Mag
 
 import XMonad.Layout hiding ( (|||) )
 import XMonad.Layout.TabBarDecoration
@@ -87,7 +88,9 @@ import XMonad.Actions.GridSelect
 -- certain contrib modules.
 --
 
-myTerminal = "~/.scripts/launch_kitty.sh"
+-- myTerminal = "~/.scripts/launch_kitty.sh"
+myTerminalDir = "alacritty --working-directory `xcwd`"
+myTerminal = "alacritty"
 
 -- The command to lock the screen or show the screensaver.
 myScreensaver = "~/.scripts/lock.sh"
@@ -109,13 +112,14 @@ myLauncher = "~/.scripts/rofi_app_launcher.sh"
 -- Workspaces
 -- The default number of workspaces (virtual screens) and their names.
 --
--- myWorkspaces = ["1: term","2: web","3: "","4: media"] ++ map show [5..9]
 
 xmobarEscape :: String -> String
 xmobarEscape = concatMap doubleLts
   where
         doubleLts '<' = "<<"
         doubleLts x   = [x]
+
+myWS = ["1 \xfbe2  ", "2 \xf269  ", "3 \xf0c3 ", "4 \xe62b ","5 \xe62b ", "6 \xf016  ", "7 \xf044 ", "8 \xf126","9 \xf152  "]
 
 myWorkspaces :: [String]
 myWorkspaces = clickable . map xmobarEscape
@@ -124,10 +128,6 @@ myWorkspaces = clickable . map xmobarEscape
         clickable l = [ "<action=xdotool key super+" ++ show n ++ ">" ++ ws ++ "</action>" |
                       (i,ws) <- zip [1..9] l,
                       let n = i ]
-
-    -- [((m .|. modMask, k), windows $ f i)
-    --   | (i, k) <- zip (XMonad.workspaces conf) [xK_1 .. xK_9]
-    --   , (f, m) <- [(W.greedyView, 0), (W.shift, shiftMask)]]
 ------------------------------------------------------------------------
 -- Window rules
 -- Execute arbitrary actions and WindowSet manipulations when managing
@@ -150,6 +150,7 @@ q ~=? x = fmap (L.isInfixOf x) q
 -- Do not treat menus and settings popup as a separate window.
 manageIdeaCompletionWindow = (className =? "jetbrains-studio") <&&> (title ~=? "win") --> doIgnore
 
+-- $ ["1 \xfbe2  ", "2 \xf269  ", "3 \xf0c3 ", "4 \xe62b ","5 \xe62b ", "6 \xf016  ", "7 \xf044 ", "8 \xf126","9 \xf152  "]
 myManageHook = 
       (isDialog --> doF W.swapUp)                       -- Bring Dialog Window on Top of Parent Floating Window
        <+> insertPosition Below Newer                    -- Insert New Windows at the Bottom of Stack Area
@@ -157,7 +158,9 @@ myManageHook =
        <+>
       composeAll
       [
-        className =? "firefox"                --> doShift "2. web"
+        className =? "Firefox"                --> doShift ( myWorkspaces !! 1 )
+      , className =? "discord"                --> doShift ( myWorkspaces !! 0 )
+      -- , className =? "okular"                --> doShift $ 
       , className =? "knotes"                --> doIgnore
       , resource  =? "desktop_window"               --> doIgnore
       , className =? "Galculator"                   --> doCenterFloat
@@ -167,9 +170,7 @@ myManageHook =
       , resource  =? "gpicview"                     --> doCenterFloat
       , className =? "MPlayer"                      --> doCenterFloat
       , className =? "Pavucontrol"                  --> doCenterFloat
-      -- , className =? "Mate-power-preferences"       --> doCenterFloat
       , className =? "Xfce4-power-manager-settings" --> doCenterFloat
-      -- , className =? "VirtualBox"                   --> doShift "4:vm"
       , className =? "Xchat"                        --> doShift "5:media"
       , className =? "stalonetray"                  --> doIgnore
       -- , isFullscreen                                --> (doF W.focusDown <+> doFullFloat)
@@ -202,13 +203,26 @@ myTall = renamed [Replace "Tall"]
           -- $ tabBar shrinkText myTabTheme Bottom (gaps[(D, 18)] $ (Tall 1 (3/100) (1/2)))
           $ tabBar shrinkText myTabTheme Bottom (gaps[(D, 16)] $ (ResizableTall 1 (3/100) (1/2) []))
 
-my3C = renamed [Replace "|||"]
+myMagnifyTall = renamed [Replace "MagTall"]
+          -- $ addTopBar
+          $ addSpace
+          $ windowArrange 
+          -- $ tabBar shrinkText myTabTheme Bottom (gaps[(D, 18)] $ (Tall 1 (3/100) (1/2)))
+          $ tabBar shrinkText myTabTheme Bottom (gaps[(D, 16)] $ (Mag.magnifier(ResizableTall 1 (3/100) (1/2) [])))
+
+myMagnifyGrid = renamed [Replace "MagGrid"]
+      -- $ addTopBar
+      $ windowNavigation
+      $ addSpace
+      $ tabBar shrinkText myTabTheme Bottom (gaps [(D, 16)] $ Mag.magnifier(Grid))
+
+my3C = renamed [Replace "3C"]
       -- $ addTopBar
       $ windowNavigation
       $ addSpace
       $ tabBar shrinkText myTabTheme Bottom (gaps[(D, 16)] $ ThreeCol 1 (3/100) (1/2))
 
-myGrid = renamed [Replace "\xfc56"]
+myGrid = renamed [Replace "Grid"]
       -- $ addTopBar
       $ windowNavigation
       $ addSpace
@@ -222,7 +236,7 @@ myRez = renamed [Replace "TallR"]
       $ tabBar shrinkText myTabTheme Bottom (gaps [(D, 16)] $ mouseResizableTile {draggerType = BordersDragger})
 
 layouts      = TL.toggleLayouts (avoidStruts myRez) (windowArrange (tab ||| avoidStruts (
-                      myTall ||| my3C ||| myGrid
+                      myMagnifyGrid ||| myMagnifyTall ||| myTall ||| my3C ||| myGrid
                   )))
 
 
@@ -454,9 +468,13 @@ scratchpads = [
               ]
   where 
     role = stringProperty "WM_WINDOW_ROLE"
-    spawnTerm = "GLFW_IM_MODULE=ibus kitty --name scratchpad --session ~/.config/kitty/todo.conf"
-    spawnWiki = "GLFW_IM_MODULE=ibus kitty --name scratchpad_wiki --session ~/.config/kitty/vimwiki.conf"
-    spawnGen = "GLFW_IM_MODULE=ibus kitty --name scratchpad_gen --title Scratchpad"
+    -- spawnTerm = "GLFW_IM_MODULE=ibus kitty --name scratchpad --session ~/.config/kitty/todo.conf"
+    -- spawnWiki = "GLFW_IM_MODULE=ibus kitty --name scratchpad_wiki --session ~/.config/kitty/vimwiki.conf"
+    -- spawnGen = "GLFW_IM_MODULE=ibus kitty --name scratchpad_gen --title Scratchpad"
+    spawnTerm = "alacritty --class scratchpad -t Todo -e nvim ~/vimwiki/Reminder.wiki"
+    spawnWiki = "alacritty --class scratchpad_wiki -t Wiki -e nvim -c VimwikiIndex"
+    spawnGen = "alacritty --class scratchpad_gen -t Scratchpad"
+
     findTerm = resource =? "scratchpad"
     findGen = resource =? "scratchpad_gen"
     findWiki = resource =? "scratchpad_wiki"
@@ -487,6 +505,7 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
   ----------------------------------------------------------------------
   -- Custom key bindings
   --
+
   
   [
   ((modMask, xK_bracketright),
@@ -510,8 +529,11 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
   [ ((modMask, xK_d),
      treeselectAction tsDefaultConfig)
   -- Start a terminal.  Terminal to start is specified by myTerminal variable.
-   , ((modMask .|. altMask, xK_Return),
+   , ((altMask, xK_Return),
      spawn $ XMonad.terminal conf)
+
+   , ((modMask .|. altMask, xK_Return),
+     spawn myTerminalDir)
 
   -- Lock the screen using command specified by myScreensaver.
   , ((modMask .|. altMask, xK_l),
@@ -532,8 +554,8 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
   , ((modMask .|. shiftMask, xK_Print),
      spawn mySelectScreenshot)
 
-  , ((modMask, xK_space),
-     spawn "~/.scripts/Toggle_Ibus.sh")
+  -- , ((modMask, xK_space),
+     -- spawn "~/.scripts/Toggle_Ibus.sh")
 
   , ((controlMask .|. altMask, xK_k),
      spawn "~/.scripts/Toggle_Keymap.sh")
@@ -705,6 +727,11 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
   ]
   ++
   [
+   ((modMask .|. controlMask              , xK_equal ), sendMessage Mag.MagnifyMore)
+   , ((modMask .|. controlMask              , xK_minus), sendMessage Mag.MagnifyLess)
+  ]
+  ++
+  [
       ((modMask  .|. controlMask              , xK_s    ), sendMessage  Arrange         )
       , ((modMask .|. controlMask .|. shiftMask, xK_s    ), sendMessage  DeArrange       )
       , ((modMask.|. controlMask              , xK_Left ), sendMessage (MoveLeft      valueInt))
@@ -836,7 +863,7 @@ main = do
                 , ppHiddenNoWindows = xmobarColor color8 "" .wrap " " " "        -- Hidden workspaces (no windows)
                 , ppVisible = xmobarColor color4 "" . wrap " " " " -- Visible but not current workspace (Xinerama only)
                 , ppHidden = xmobarColor color4  "" . wrap " " " " -- Hidden workspaces in xmobar
-                , ppTitle = xmobarColor color3 "" . shorten 100
+                , ppTitle = xmobarColor color4 "" . shorten 100
                 , ppSep = " "
                , ppLayout = xmobarColor color4 "" .wrap "<box type=Full color=#83a598> " " </box>"
                 , ppOutput = hPutStrLn xmproc
