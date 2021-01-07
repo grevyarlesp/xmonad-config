@@ -1,4 +1,5 @@
 -- xmonad config used by k4l1brx, modified from randomthought's config 
+{-# LANGUAGE FlexibleContexts #-}
 
 import System.IO
 import Data.Monoid
@@ -18,7 +19,7 @@ import XMonad.Util.SpawnOnce
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.ManageHelpers
 import qualified XMonad.Actions.FlexibleManipulate as Flex
-
+import qualified XMonad.Layout.BoringWindows as BR
 import XMonad.Layout.Decoration(Decoration, DefaultShrinker)
 import XMonad.Layout.LayoutModifier(LayoutModifier(handleMess, modifyLayout,
                                     redoLayout),
@@ -199,7 +200,7 @@ myManageHook =
 -- The available layouts.  Note that each layout is separated by |||,
 -- which denotes layout choice.
 
-
+mySubTabbed  x =  addTabs shrinkText myTabTheme $ subLayout [] Simplest $ BR.boringWindows $ x
 
 outerGaps    = 0
 myGaps       = gaps [(U, outerGaps), (R, outerGaps), (L, outerGaps), (D, outerGaps)]
@@ -214,7 +215,7 @@ myTall = renamed [Replace "Tall"]
           $ addSpace
           $ windowArrange 
           -- $ tabBar shrinkText myTabTheme Bottom (gaps[(D, 18)] $ (Tall 1 (3/100) (1/2)))
-          $ tabBar shrinkText myTabTheme Bottom (gaps[(D, 16)] $ (ResizableTall 1 (3/100) (1/2) []))
+          $ tabBar shrinkText myTabTheme Bottom (gaps[(D, 16)] $ (mySubTabbed $ ResizableTall 1 (3/100) (1/2) []))
 
 myMagnifyTall = renamed [Replace "MagTall"]
           -- $ addTopBar
@@ -227,29 +228,25 @@ myMagnifyGrid = renamed [Replace "MagGrid"]
       -- $ addTopBar
       $ windowNavigation
       $ addSpace
-      $ tabBar shrinkText myTabTheme Bottom (gaps [(D, 16)] $ Mag.magnifier(Grid))
-
+      $ tabBar shrinkText myTabTheme Bottom (gaps [(D, 16)] $ (Mag.magnifier $ Grid)) 
 my3C = renamed [Replace "3C"]
       -- $ addTopBar
       $ windowNavigation
       $ addSpace
-      $ tabBar shrinkText myTabTheme Bottom (gaps[(D, 16)] $ ThreeCol 1 (3/100) (1/2))
+      $ tabBar shrinkText myTabTheme Bottom (gaps[(D, 16)] $ mySubTabbed $ ThreeCol 1 (3/100) (1/2))
 
 myGrid = renamed [Replace "Grid"]
       -- $ addTopBar
       $ windowNavigation
       $ addSpace
-      $ tabBar shrinkText myTabTheme Bottom (gaps [(D, 16)] $ Grid)
-
--- myTT = renamed [Replace "TT"] 
---       $ subLayout [0,1,2] ((tabbedBottomAlways shrinkText myTabTheme) ||| (tabbedBottomAlways shrinkText myTabTheme))
+      $ tabBar shrinkText myTabTheme Bottom (gaps [(D, 16)] $ mySubTabbed $ Grid)
 
 
 myRez = renamed [Replace "TallR"]
       -- $ addTopBar
       $ windowNavigation
       $ addSpace
-      $ tabBar shrinkText myTabTheme Bottom (gaps [(D, 16)] $ mouseResizableTile {draggerType = BordersDragger})
+      $ tabBar shrinkText myTabTheme Bottom (gaps [(D, 16)] $ mySubTabbed $ mouseResizableTile {draggerType = BordersDragger})
 
 layouts      = TL.toggleLayouts (avoidStruts myRez) (windowArrange (tab ||| avoidStruts (
                       myMagnifyGrid ||| myMagnifyTall ||| myTall ||| my3C ||| myGrid
@@ -552,7 +549,7 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
      spawn myTerminalDir)
 
   -- Lock the screen using command specified by myScreensaver.
-  , ((modMask .|. altMask, xK_l),
+  , ((controlMask .|. altMask, xK_l),
      spawn myScreensaver)
 
   -- Spawn the launcher using command specified by myLauncher.
@@ -638,10 +635,14 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
   -- Move focus to the next window.
   , ((modMask, xK_j),
      windows W.focusDown)
-
   -- Move focus to the previous window.
   , ((modMask, xK_k),
-     windows W.focusUp  )
+     windows W.focusUp)
+  , ((modMask .|. altMask, xK_j),
+    BR.focusDown)
+
+  , ((modMask .|. altMask, xK_k),
+    BR.focusUp)
 
   -- Move focus to the master window.
   , ((modMask, xK_m),
