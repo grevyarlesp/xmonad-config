@@ -4,7 +4,7 @@
 
 
 Config { font    = "xft:Sarasa Gothic J:size=9:antialias=true:hinting=true,Inconsolata Nerd Font:size=9"
-       -- , additionalFonts = [ "xft:Wuncon Siji:pixelsize=13" ]
+       , additionalFonts = [ "xft:Inconsolata Nerd Font:size=9" ]
        , bgColor = "#1d2021"
        , alpha = 255
        , fgColor = "#00acc1"
@@ -38,7 +38,7 @@ Config { font    = "xft:Sarasa Gothic J:size=9:antialias=true:hinting=true,Incon
 
                       -- Time and date
                     , Run Date "<box type=Full color=#fb4934><fc=#fb4934> \xf5ef  <fc=#fabd2f>%H:%M</fc> %a %d %m %Y </fc></box>" "date" 10
-                    , Run DynNetwork     [ "--template" ,"<box type=Full color=#8ec07c> <fc=#8ec07c>\xf63a  \xf175<rx>KB \xf176<tx>KB </fc></box>"
+                    , Run DynNetwork     [ "--template" ,"<box type=Full color=#8ec07c> <fc=#8ec07c>\xf0e8  \xf175<rx>KB \xf176<tx>KB </fc></box>"
                               ,"--Low"      , "1000"       -- units: B/s
                              , "--High"     , "5000"       -- units: B/s
                              , "--low"      , "#fa4934"
@@ -62,11 +62,12 @@ Config { font    = "xft:Sarasa Gothic J:size=9:antialias=true:hinting=true,Incon
                              ]
 
                     , Run PipeReader "\xe386 Timer:/home/hts/.xmonad/fifo" "pipe"
+                    , Run PipeReader " :/home/hts/.xmonad/recordingicon" "pipe2"
                       -- Prints out the left side items such as workspaces, layout, etc.
                       -- The workspaces are set to be 'clickable' in .xmonad/xmonad.hs
                     , Run UnsafeStdinReader
                     ]
        , sepChar = "%"
        , alignSep = "}{"
-           , template = "<action=`~/.scripts/rofi_app_launcher.sh`><fc=#1d2021,#83a598><box type=Full color=#83a598>    </box></fc></action> %UnsafeStdinReader% }{ <action=`kitty --session ~/.config/kitty/nmtui.conf`>%dynnetwork%%wi%</action><action=`xfce4-power-manager-settings`> %battery% </action><action=`~/.scripts/Toggle_Keymap.sh`>%kbd%</action> %alsa:pulse:Master% <box type=Full color=#fa4934><fc=#fa4934> %pipe% </fc></box> %date% <box type=Full color=#83a598>%trayerpad%</box>"
+           , template = "<action=`~/.scripts/rofi_app_launcher.sh`><fc=#1d2021,#83a598><box type=Full color=#83a598>    </box></fc></action> %UnsafeStdinReader% }{ %pipe2% <action=`kitty --session ~/.config/kitty/nmtui.conf`>%dynnetwork%%wi%</action><action=`xfce4-power-manager-settings`> %battery% </action><action=`~/.scripts/Toggle_Keymap.sh`>%kbd%</action> %alsa:pulse:Master% <box type=Full color=#fa4934><fc=#fa4934> %pipe% </fc></box> %date% <box type=Full color=#83a598>%trayerpad%</box>"
        }

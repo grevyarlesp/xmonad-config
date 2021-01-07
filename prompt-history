@@ -1,1 +1,1 @@
-fromList [("Run: ",["dmenu_run","VirtualBox","firefox","firefox","dolphin","keepassxc","dolphin","echo \"hello\"","KDECONNECT/"])]
+fromList [("Run: ",["dmenurecord","mpd","/home/hts/.scripts/dmenurecord","/home/hts/.scripts/dmenurecord","/home/hts/.scripts/dmenurecord","dmenurecord","/home/hts/.scripts/dmenurecord","/home/hts/.scripts/dmenurecord","/home/hts/.scripts/dmenurecord","/home/hts/.scripts/dmenurecord","dmenurecord","dmenu_run","VirtualBox","firefox","firefox","dolphin","keepassxc","dolphin","echo \"hello\"","KDECONNECT/"])]

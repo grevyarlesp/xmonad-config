@@ -18,6 +18,13 @@ import XMonad.Util.SpawnOnce
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.ManageHelpers
 import qualified XMonad.Actions.FlexibleManipulate as Flex
+
+import XMonad.Layout.Decoration(Decoration, DefaultShrinker)
+import XMonad.Layout.LayoutModifier(LayoutModifier(handleMess, modifyLayout,
+                                    redoLayout),
+                                    ModifiedLayout(..))
+import XMonad.Layout.Simplest(Simplest(..))
+
 import XMonad.Layout.DecorationMadness
 import XMonad.Layout.BorderResize
 import XMonad.Layout.TrackFloating
@@ -52,9 +59,10 @@ import qualified XMonad.Layout.ToggleLayouts as TL
 import XMonad.Layout.MultiToggle.Instances
 import XMonad.Layout.NoFrillsDecoration
 import XMonad.Layout.Renamed
-import XMonad.Layout.Simplest
+
 import XMonad.Layout.SubLayouts
 import XMonad.Layout.WindowNavigation
+
 import XMonad.Layout.ZoomRow
 import XMonad.Layout.Grid
 import XMonad.Util.Run(spawnPipe)
@@ -82,6 +90,10 @@ import XMonad.Util.NamedScratchpad
 import XMonad.Prompt.Shell 
 import XMonad.Actions.CopyWindow
 import XMonad.Actions.GridSelect
+
+
+
+-----------------------------------Custom Layout---------------------------
 ----------------------------mupdf--------------------------------------------
 -- Terminimport XMonad.Hooks.EwmhDesktopsal
 -- The preferred terminal program, which is used in a binding below and by
@@ -187,16 +199,17 @@ myManageHook =
 -- The available layouts.  Note that each layout is separated by |||,
 -- which denotes layout choice.
 
+
+
 outerGaps    = 0
 myGaps       = gaps [(U, outerGaps), (R, outerGaps), (L, outerGaps), (D, outerGaps)]
 addSpace     = renamed [CutWordsLeft 2] . spacing gap
 tab          = avoidStruts
               $ renamed [Replace "Tabbed"]
-              -- $ gaps [(U, 0), (R, outerGaps), (L, outerGaps), (D, 0)]
                $ tabbedBottomAlways shrinkText myTabTheme
-              -- $ tabBar shrinkText myTabTheme Bottom (gaps [(D, 18)] $ Tall 1 0.03 0.5))
 
 myTall = renamed [Replace "Tall"]
+          $ windowNavigation
           -- $ addTopBar
           $ addSpace
           $ windowArrange 
@@ -227,6 +240,9 @@ myGrid = renamed [Replace "Grid"]
       $ windowNavigation
       $ addSpace
       $ tabBar shrinkText myTabTheme Bottom (gaps [(D, 16)] $ Grid)
+
+-- myTT = renamed [Replace "TT"] 
+--       $ subLayout [0,1,2] ((tabbedBottomAlways shrinkText myTabTheme) ||| (tabbedBottomAlways shrinkText myTabTheme))
 
 
 myRez = renamed [Replace "TallR"]
@@ -462,18 +478,18 @@ myTabTheme = def
 --
 
 scratchpads = [
-  NS "todo" spawnTerm findTerm manageTerm,
-  NS "gen" spawnGen findGen manageTerm,
+  NS "todo" spawnTerm findTerm nonFloating,
+  NS "gen" spawnGen findGen nonFloating,
   NS "wiki" spawnWiki findWiki nonFloating
               ]
   where 
     role = stringProperty "WM_WINDOW_ROLE"
-    -- spawnTerm = "GLFW_IM_MODULE=ibus kitty --name scratchpad --session ~/.config/kitty/todo.conf"
-    -- spawnWiki = "GLFW_IM_MODULE=ibus kitty --name scratchpad_wiki --session ~/.config/kitty/vimwiki.conf"
-    -- spawnGen = "GLFW_IM_MODULE=ibus kitty --name scratchpad_gen --title Scratchpad"
-    spawnTerm = "alacritty --class scratchpad -t Todo -e nvim ~/vimwiki/Reminder.wiki"
-    spawnWiki = "alacritty --class scratchpad_wiki -t Wiki -e nvim -c VimwikiIndex"
-    spawnGen = "alacritty --class scratchpad_gen -t Scratchpad"
+    spawnTerm = "GLFW_IM_MODULE=ibus kitty --name scratchpad --session ~/.config/kitty/todo.conf"
+    spawnWiki = "GLFW_IM_MODULE=ibus kitty --name scratchpad_wiki --session ~/.config/kitty/vimwiki.conf"
+    spawnGen = "GLFW_IM_MODULE=ibus kitty --name scratchpad_gen --title Scratchpad"
+    -- spawnTerm = "alacritty --class scratchpad -t Todo -e nvim ~/vimwiki/Reminder.wiki"
+    -- spawnWiki = "alacritty --class scratchpad_wiki -t Wiki -e nvim -c VimwikiIndex"
+    -- spawnGen = "alacritty --class scratchpad_gen -t Scratchpad"
 
     findTerm = resource =? "scratchpad"
     findGen = resource =? "scratchpad_gen"
@@ -522,7 +538,7 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
   ++
   [
    ((modMask, xK_y), goToSelected $ gsconfig2 defaultColorizer)
-   , ((modMask, xK_p), goToSelected $ gsconfig2 defaultColorizer)
+   , ((modMask, xK_bracketleft), goToSelected $ gsconfig2 defaultColorizer)
    , ((modMask, xK_F8), spawn "~/.scripts/displayselect")
   ]
   ++
@@ -541,7 +557,7 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
 
   -- Spawn the launcher using command specified by myLauncher.
   -- Use this to launch programs without a key binding.
-  , ((modMask, xK_bracketleft),
+  , ((modMask, xK_p),
      spawn myLauncher)
 
   , ((modMask .|. shiftMask, xK_Return),
@@ -550,6 +566,8 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
   , ((modMask, xK_Print),
      spawn myScreenshot)
 
+  , ((modMask .|. shiftMask .|. controlMask, xK_F8),
+    spawn "~/.scripts/dmenurecord")
   -- Take a selective screenshot using the command specified by mySelectScreenshot.
   , ((modMask .|. shiftMask, xK_Print),
      spawn mySelectScreenshot)
@@ -723,7 +741,7 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
   ]
   ++
   [
-    ((modMask, xK_o), shellPrompt myXPromptConfig)
+    ((modMask, xK_o), spawn "dmenu_run")
   ]
   ++
   [
@@ -798,9 +816,9 @@ myStartupHook = do
 
 ------------------------------------------------------------------------
 
-myBackgroundColor = "#151515"
+myBackgroundColor = background
 
-myContentColor = "#d0d0d0"
+myContentColor = foreground
 
 
 myXPromptConfig :: XPConfig
@@ -813,9 +831,9 @@ myXPromptConfig =
     , font = myFont
     , bgColor = myBackgroundColor
     , fgColor = myContentColor
-    , bgHLight = myBackgroundColor
-    , fgHLight = myContentColor
-    , borderColor = myBackgroundColor
+    , bgHLight = color4
+    , fgHLight = myBackgroundColor
+    , borderColor = color4
     , position = Top
     , autoComplete = Nothing
     , showCompletionOnTab = False
@@ -847,7 +865,6 @@ main = do
   -- spawn "killall xmobar"
   -- restart "xmonad" True
 
-
   xmonad $ docks
          $ withNavigation2DConfig myNav2DConf
          $ additionalNav2DKeys (xK_Up, xK_Left, xK_Down, xK_Right)
@@ -863,12 +880,13 @@ main = do
                 , ppHiddenNoWindows = xmobarColor color8 "" .wrap " " " "        -- Hidden workspaces (no windows)
                 , ppVisible = xmobarColor color4 "" . wrap " " " " -- Visible but not current workspace (Xinerama only)
                 , ppHidden = xmobarColor color4  "" . wrap " " " " -- Hidden workspaces in xmobar
-                , ppTitle = xmobarColor color4 "" . shorten 100
+                , ppTitle = xmobarColor color4 "" . shorten 100 .wrap " " " "
                 , ppSep = " "
-               , ppLayout = xmobarColor color4 "" .wrap "<box type=Full color=#83a598> " " </box>"
+               , ppLayout = xmobarColor background color4 .wrap " " " "
                 , ppOutput = hPutStrLn xmproc
          })
-         -- >> updatePointer (0.75, 0.75) (0.75, 0.75)
+         >> updatePointer (0.75, 0.75) (0.75, 0.75)
+         -- Was told the updatePointer line could stop freezing...
       }
 
 ------------------------------------------------------------------------
