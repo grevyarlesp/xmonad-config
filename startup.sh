@@ -10,7 +10,7 @@ fi
 
 
 if [ -z "$(pgrep stalonetray)" ];  then
-    stalonetray -c ~/.xmonad/stalonetrayrrc
+    stalonetray -c ~/.xmonad/stalonetrayrrc &
 fi
 
 # # picom
@@ -36,3 +36,4 @@ fi
 if [ -z "$(pgrep udiskie)" ]; then
     udiskie &
 fi
+

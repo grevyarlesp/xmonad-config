@@ -1,11 +1,14 @@
 -- xmonad config used by k4l1brx, modified from randomthought's config 
-{-# LANGUAGE FlexibleContexts #-}
 
+{-# LANGUAGE TypeSynonymInstances, DeriveDataTypeable, MultiParamTypeClasses, NoMonomorphismRestriction, FlexibleContexts #-}
+-- ---------------------------------------------------------------------------
 import System.IO
+
+
 import Data.Monoid
 import Data.Ratio ((%))
 import Data.Word
-import Control.Monad ((>=>), join, liftM, when)   -- For Custom Fullscreen Function
+import Control.Monad ((>=>), join, liftM, when, unless, forM)   -- For Custom Fullscreen Function
 import GHC.Word
 import System.Exit
 import qualified Data.List as L
@@ -18,6 +21,7 @@ import XMonad.Hooks.DynamicLog
 import XMonad.Util.SpawnOnce 
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.ManageHelpers
+import XMonad.Hooks.ServerMode
 import qualified XMonad.Actions.FlexibleManipulate as Flex
 import qualified XMonad.Layout.BoringWindows as BR
 import XMonad.Layout.Decoration(Decoration, DefaultShrinker)
@@ -26,6 +30,9 @@ import XMonad.Layout.LayoutModifier(LayoutModifier(handleMess, modifyLayout,
                                     ModifiedLayout(..))
 import XMonad.Layout.Simplest(Simplest(..))
 
+import XMonad.Util.WorkspaceCompare
+import XMonad.Actions.CycleWS
+import XMonad.Layout.Reflect
 import XMonad.Layout.DecorationMadness
 import XMonad.Layout.BorderResize
 import XMonad.Layout.TrackFloating
@@ -86,12 +93,13 @@ import XMonad.Actions.Promote
 
 import XMonad.Prompt
 import XMonad.Prompt.FuzzyMatch
+import XMonad.Prompt.Theme
 
 import XMonad.Util.NamedScratchpad
 import XMonad.Prompt.Shell 
 import XMonad.Actions.CopyWindow
 import XMonad.Actions.GridSelect
-
+import XMonad.Util.WindowProperties
 
 
 -----------------------------------Custom Layout---------------------------
@@ -171,8 +179,7 @@ myManageHook =
        <+>
       composeAll
       [
-        className =? "Firefox"                --> doShift ( myWorkspaces !! 1 )
-      , className =? "discord"                --> doShift ( myWorkspaces !! 0 )
+      className =? "discord"                --> doShift ( myWorkspaces !! 0 )
       -- , className =? "okular"                --> doShift $ 
       , className =? "knotes"                --> doIgnore
       , resource  =? "desktop_window"               --> doIgnore
@@ -200,62 +207,82 @@ myManageHook =
 -- The available layouts.  Note that each layout is separated by |||,
 -- which denotes layout choice.
 
-mySubTabbed  x =  addTabs shrinkText myTabTheme $ subLayout [] Simplest $ BR.boringWindows $ x
+mySubTabbed  x = addTabs shrinkText myTabTheme $ subLayout [] Simplest x
 
 outerGaps    = 0
 myGaps       = gaps [(U, outerGaps), (R, outerGaps), (L, outerGaps), (D, outerGaps)]
 addSpace     = renamed [CutWordsLeft 2] . spacing gap
 tab          = avoidStruts
-              $ renamed [Replace "Tabbed"]
+              $ renamed [Replace "[T]"]
                $ tabbedBottomAlways shrinkText myTabTheme
 
-myTall = renamed [Replace "Tall"]
+myTall = renamed [Replace "[]="]
+          $ mySubTabbed $ BR.boringWindows 
           $ windowNavigation
           -- $ addTopBar
           $ addSpace
           $ windowArrange 
           -- $ tabBar shrinkText myTabTheme Bottom (gaps[(D, 18)] $ (Tall 1 (3/100) (1/2)))
-          $ tabBar shrinkText myTabTheme Bottom (gaps[(D, 16)] $ (mySubTabbed $ ResizableTall 1 (3/100) (1/2) []))
+          $ ResizableTall 1 (3/100) (1/2) []
 
-myMagnifyTall = renamed [Replace "MagTall"]
+myMagnifyTall = renamed [Replace "[MT]"]
           -- $ addTopBar
           $ addSpace
           $ windowArrange 
           -- $ tabBar shrinkText myTabTheme Bottom (gaps[(D, 18)] $ (Tall 1 (3/100) (1/2)))
           $ tabBar shrinkText myTabTheme Bottom (gaps[(D, 16)] $ (Mag.magnifier(ResizableTall 1 (3/100) (1/2) [])))
 
-myMagnifyGrid = renamed [Replace "MagGrid"]
+myMagnifyGrid = renamed [Replace "[MG]"]
       -- $ addTopBar
       $ windowNavigation
       $ addSpace
       $ tabBar shrinkText myTabTheme Bottom (gaps [(D, 16)] $ (Mag.magnifier $ Grid)) 
-my3C = renamed [Replace "3C"]
-      -- $ addTopBar
+
+my3C = renamed [Replace "[=]"]
+      $ mySubTabbed $ BR.boringWindows 
       $ windowNavigation
       $ addSpace
-      $ tabBar shrinkText myTabTheme Bottom (gaps[(D, 16)] $ mySubTabbed $ ThreeCol 1 (3/100) (1/2))
+      $ ThreeCol 1 (3/100) (1/2)
 
-myGrid = renamed [Replace "Grid"]
-      -- $ addTopBar
+myGrid = renamed [Replace "[G]"]
+      $ mySubTabbed $ BR.boringWindows 
       $ windowNavigation
       $ addSpace
-      $ tabBar shrinkText myTabTheme Bottom (gaps [(D, 16)] $ mySubTabbed $ Grid)
+      $ Grid
 
-
-myRez = renamed [Replace "TallR"]
-      -- $ addTopBar
+myRez = renamed [Replace "[S]"]
       $ windowNavigation
-      $ addSpace
-      $ tabBar shrinkText myTabTheme Bottom (gaps [(D, 16)] $ mySubTabbed $ mouseResizableTile {draggerType = BordersDragger})
+      $ tabBar shrinkText myTabTheme Bottom (gaps [(D, 16)] $ simplestFloat)
 
+-- layouts      = TL.toggleLayouts (avoidStruts myRez) (windowArrange (tab ||| avoidStruts (
 layouts      = TL.toggleLayouts (avoidStruts myRez) (windowArrange (tab ||| avoidStruts (
                       myMagnifyGrid ||| myMagnifyTall ||| myTall ||| my3C ||| myGrid
                   )))
 
+myLayoutSelect = [
+         ("[T]", sendMessage $ JumpToLayout "[T]")
+         ,("[]=", sendMessage $ JumpToLayout "[]=")
+         ,("[G]",    sendMessage $ JumpToLayout "[G]")
+         ,("[=]",    sendMessage $ JumpToLayout "[=]")
+         ]
+
+selectLayout     = runSelectedAction (myGSConfig $ myColor color4) myLayoutSelect
+
+myGSConfig colorizer = (buildDefaultGSConfig colorizer)
+  {gs_cellheight  = 50
+  ,gs_cellwidth   = 125
+  }
 
 myLayout    = smartBorders
               $ mkToggle (NOBORDERS ?? FULL ?? EOT)
               $ layouts
+
+
+-- Colorizer generator
+myColor color _ isFg = do
+  return $ if isFg
+           then (color, color0)
+           else (color0 ,color)
 
 myNav2DConf = def
     { defaultTiledNavigation    = centerNavigation
@@ -297,8 +324,8 @@ tsDefaultConfig = TS.TSConfig {
                            , TS.ts_font         = "xft:Sans-16"
                            , TS.ts_node         = (0xff1d2021, 0xff83a598)
                            , TS.ts_nodealt      = (0xff1d2021, 0xff85b6a3)
-                           , TS.ts_highlight    = (0xffffffff, 0xffff0000)
-                           , TS.ts_extra        = 0xffff0000
+                           , TS.ts_highlight    = (0xffffffff, 0xffb8bb26)
+                           , TS.ts_extra        = 0xffb8bb26
                            , TS.ts_node_width   = 200
                            , TS.ts_node_height  = 30
                            , TS.ts_originX      = 20
@@ -347,15 +374,18 @@ myTreeNavigation = M.fromList
     , ((mod4Mask .|. altMask, xK_s), TS.moveTo ["dev", "programming", "shell"])
     ]
 
+
+-- getSortByIndexNoSP =
+--         fmap (.namedScratchpadFilterOutWorkspace) getSortByIndex
+
+windowsNoSP :: (WindowSet -> WindowSet) -> X ()
+windowsNoSP = windows
+
+
+myGoToSelected :: GSConfig Window -> X ()
+myGoToSelected = withSelectedWindow $ windowsNoSP . W.focusWindow
+
 gsconfig2 colorizer = (buildDefaultGSConfig colorizer) { gs_cellheight = 50, gs_cellwidth = 200 }
--- greenColorizer = colorRangeFromClassName
---                      black            -- lowest inactive bg
---                      (0x70,0xFF,0x70) -- highest inactive bg
---                      black            -- active bg
---                      white            -- inactive fg
---                      white            -- active fg
---   where black = minBound
---         white = maxBound
 
 
 ------------------------------------------------------------------------
@@ -398,7 +428,7 @@ color0       = "#1d2021"
 color8       = "#665c54"
 
 color1       = "#fb4934"
-color9       = "#fb4934"
+color9       = "#cc241d"
 
 color2       = "#b8bb26"
 color10      = "#b8bb26"
@@ -406,8 +436,8 @@ color10      = "#b8bb26"
 color3       = "#fabd2f"
 color11      = "#fabd2f"
 
-color4       = "#83a598"
-color12      = "#83a598"
+color12       = "#458588"
+color4      = "#83a598"
 
 color5       = "#d3869b"
 color13      = "#d3869b"
@@ -475,18 +505,18 @@ myTabTheme = def
 --
 
 scratchpads = [
-  NS "todo" spawnTerm findTerm nonFloating,
-  NS "gen" spawnGen findGen nonFloating,
+  NS "todo" spawnTerm findTerm manageTerm,
+  NS "gen" spawnGen findGen manageTerm,
   NS "wiki" spawnWiki findWiki nonFloating
               ]
   where 
     role = stringProperty "WM_WINDOW_ROLE"
-    spawnTerm = "GLFW_IM_MODULE=ibus kitty --name scratchpad --session ~/.config/kitty/todo.conf"
-    spawnWiki = "GLFW_IM_MODULE=ibus kitty --name scratchpad_wiki --session ~/.config/kitty/vimwiki.conf"
-    spawnGen = "GLFW_IM_MODULE=ibus kitty --name scratchpad_gen --title Scratchpad"
-    -- spawnTerm = "alacritty --class scratchpad -t Todo -e nvim ~/vimwiki/Reminder.wiki"
-    -- spawnWiki = "alacritty --class scratchpad_wiki -t Wiki -e nvim -c VimwikiIndex"
-    -- spawnGen = "alacritty --class scratchpad_gen -t Scratchpad"
+    -- spawnTerm = "GLFW_IM_MODULE=ibus kitty --name scratchpad --session ~/.config/kitty/todo.conf"
+    -- spawnWiki = "GLFW_IM_MODULE=ibus kitty --name scratchpad_wiki --session ~/.config/kitty/vimwiki.conf"
+    -- spawnGen = "GLFW_IM_MODULE=ibus kitty --name scratchpad_gen --title Scratchpad"
+    spawnTerm = "st -c scratchpad -t Todo -e nvim ~/vimwiki/Reminder.wiki"
+    spawnWiki = "st -c scratchpad_wiki -t Wiki -e nvim -c VimwikiIndex"
+    spawnGen = "st -c scratchpad_gen -t Scratchpad"
 
     findTerm = resource =? "scratchpad"
     findGen = resource =? "scratchpad_gen"
@@ -518,8 +548,13 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
   ----------------------------------------------------------------------
   -- Custom key bindings
   --
-
-  
+  [
+  ((modMask .|. controlMask .|. shiftMask, xK_k),
+  spawn "xkill")
+  , ((modMask .|. controlMask, xK_space),
+  selectLayout)
+  ]
+  ++
   [
   ((modMask, xK_bracketright),
      spawn "~/.xmonad/pomobar.sh")
@@ -534,19 +569,16 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
   ]
   ++
   [
-   ((modMask, xK_y), goToSelected $ gsconfig2 defaultColorizer)
-   , ((modMask, xK_bracketleft), goToSelected $ gsconfig2 defaultColorizer)
+   ((modMask, xK_bracketleft), myGoToSelected $ gsconfig2 defaultColorizer)
    , ((modMask, xK_F8), spawn "~/.scripts/displayselect")
   ]
   ++
   [ ((modMask, xK_d),
      treeselectAction tsDefaultConfig)
   -- Start a terminal.  Terminal to start is specified by myTerminal variable.
-   , ((altMask, xK_Return),
-     spawn $ XMonad.terminal conf)
 
    , ((modMask .|. altMask, xK_Return),
-     spawn myTerminalDir)
+     spawn $ XMonad.terminal conf)
 
   -- Lock the screen using command specified by myScreensaver.
   , ((controlMask .|. altMask, xK_l),
@@ -558,7 +590,7 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
      spawn myLauncher)
 
   , ((modMask .|. shiftMask, xK_Return),
-      spawn "dolphin \"`xcwd`\"")
+      spawn "pcmanfm-qt \"`xcwd`\"")
   -- Take a full screenshot using the command specified by myScreenshot.
   , ((modMask, xK_Print),
      spawn myScreenshot)
@@ -572,12 +604,10 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
   -- , ((modMask, xK_space),
      -- spawn "~/.scripts/Toggle_Ibus.sh")
 
-  , ((controlMask .|. altMask, xK_k),
-     spawn "~/.scripts/Toggle_Keymap.sh")
   -- Toggle current focus window to fullscreen
   , ((modMask, xK_f), sendMessage $ Toggle FULL)
-  , ((modMask, xK_s), sendMessage $ TL.Toggle "TallR")
-  , ((modMask .|. shiftMask, xK_p), sendMessage $ JumpToLayout "Tabbed")
+  , ((modMask, xK_s), sendMessage $ TL.Toggle "[S]")
+  , ((modMask .|. shiftMask, xK_p), sendMessage $ JumpToLayout "[T]")
 
   -- Mute volume.
   , ((0, xF86XK_AudioMute),
@@ -742,7 +772,8 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
   ]
   ++
   [
-    ((modMask, xK_o), spawn "dmenu_run")
+    ((modMask, xK_o), shellPrompt myXPromptConfig)
+    , ((modMask .|. shiftMask, xK_o), spawn "~/.scripts/mpdmenu")
   ]
   ++
   [
@@ -809,7 +840,7 @@ myMouseBindings (XConfig {XMonad.modMask = modMask}) = M.fromList $
 --
 -- By default, do nothing.
 myStartupHook = do
-  setWMName "Xmonad"
+  setWMName "LG3D"
   spawn     "~/.xmonad/startup.sh"
   setWindowSpacingEnabled False
   spawnOnce     "picom -b"
@@ -825,11 +856,11 @@ myContentColor = foreground
 myXPromptConfig :: XPConfig
 myXPromptConfig =
   XPC
-    { promptBorderWidth = 1
+    { promptBorderWidth = 3
+    , font = "xft:Sarasa Gothic J:size=12:antialias=true"
     , alwaysHighlight = True
-    , height = 22
+    , height = 30
     , historySize = 256
-    , font = myFont
     , bgColor = myBackgroundColor
     , fgColor = myContentColor
     , bgHLight = color4
@@ -841,7 +872,7 @@ myXPromptConfig =
     , searchPredicate = fuzzyMatch
     , defaultPrompter = id
     , sorter = const id
-    , maxComplRows = Just 7
+    , maxComplRows = Just 5
     , promptKeymap = defaultXPKeymap
     , completionKey = (0, xK_Tab)
     , changeModeKey = xK_grave
@@ -851,20 +882,15 @@ myXPromptConfig =
 
 ------------------------------------------------------------------------
 
+padding = replicate 10 ' '
 
 -- Run xmonad with all the defaults we set up.
---
 
-padding :: String
-padding = replicate 100 ' '
 
 main = do
 
-  -- spawn "feh --bg-center ~/.xmonad/1920x1200.jpg"
-  --
   xmproc <- spawnPipe "xmobar ~/.xmonad/xmobarrc.hs"
-  -- spawn "killall xmobar"
-  -- restart "xmonad" True
+
 
   xmonad $ docks
          $ withNavigation2DConfig myNav2DConf
@@ -877,17 +903,19 @@ main = do
          $ ewmh
          $ defaults {
          logHook = dynamicLogWithPP (namedScratchpadFilterOutWorkspacePP xmobarPP {
-                ppCurrent = xmobarColor xmobarCurrentForeground xmobarCurrentBackground . wrap " " " "
-                , ppHiddenNoWindows = xmobarColor color8 "" .wrap " " " "        -- Hidden workspaces (no windows)
-                , ppVisible = xmobarColor color4 "" . wrap " " " " -- Visible but not current workspace (Xinerama only)
-                , ppHidden = xmobarColor color4  "" . wrap " " " " -- Hidden workspaces in xmobar
-                , ppTitle = xmobarColor color4 "" . shorten 100 .wrap " " " "
-                , ppSep = " "
-               , ppLayout = xmobarColor background color4 .wrap " " " "
+                ppCurrent = xmobarColor xmobarCurrentForeground xmobarCurrentBackground . wrap ("<box type=Full color=" ++ color4 ++ ">")  " </box>"
+                -- Hidden workspaces (no windows)
+                , ppHiddenNoWindows = xmobarColor color8 "" .wrap ("<box type=Full color=" ++ background ++ ">")  " </box>"
+                 -- Visible but not current workspace (Xinerama only)
+                , ppVisible = xmobarColor color4 "" .wrap ("<box type=Full color=" ++ background ++ ">")  " </box>"
+                 -- Hidden workspaces in xmobar
+                , ppHidden = xmobarColor color4  "" .wrap ("<box type=Full color=" ++ background ++ ">")  " </box>"
+                , ppSep = ""
+               , ppLayout = xmobarColor background color2 .wrap ("<action=xdotool key super+alt+space><box type=Full color=" ++ color2 ++ "><fn=1> ") " </fn></box></action>"
+                , ppTitle = xmobarColor color2 "" . wrap ("<fn=2> ")  " </fn>"
                 , ppOutput = hPutStrLn xmproc
          })
-         >> updatePointer (0.75, 0.75) (0.75, 0.75)
-         -- Was told the updatePointer line could stop freezing...
+         -- >> updatePointer (0.75, 0.75) (0.75, 0.75)
       }
 
 ------------------------------------------------------------------------
@@ -905,10 +933,11 @@ defaults = def {
     -- key bindings
     keys               = myKeys,
     mouseBindings      = myMouseBindings,
-
+    handleEventHook = handleEventHook def <+> docksEventHook <+> fullscreenEventHook,
+    -- handleEventHook = serverModeEventHookCmd <+> serverModeEventHook <+> serverModeEventHookF "XMONAD_PRINT" (io . putStrLn) <+> docksEventHook <+> fullscreenEventHook,
     -- hooks, layouts
     layoutHook         = myLayout,
-    handleEventHook    = handleEventHook def <+> fullscreenEventHook,
+    -- handleEventHook    = handleEventHook def <+> fullscreenEventHook,
     manageHook         = namedScratchpadManageHook scratchpads <+> manageDocks <+> myManageHook,
     startupHook        = myStartupHook
 }

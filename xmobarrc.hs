@@ -3,8 +3,10 @@
 -- you can find weather location codes here: http://weather.noaa.gov/index.html
 
 
-Config { font    = "xft:Sarasa Gothic J:size=9:antialias=true:hinting=true,Inconsolata Nerd Font:size=9"
-       , additionalFonts = [ "xft:Inconsolata Nerd Font:size=9" ]
+Config { font    = "xft:Sarasa Gothic J:pixelsize=12:antialias=true:hinting=true:style=Semibold,Inconsolata Nerd Font:pixelsize=12:antialias=true:hinting=true"
+       , additionalFonts = [ "xft:Hack Nerd Font:pixelsize=12:hinting=true:antialias=true",
+            "xft:Sarasa Gothic J:pixelsize=12:style=Semibold"
+       ]
        , bgColor = "#1d2021"
        , alpha = 255
        , fgColor = "#00acc1"
@@ -37,7 +39,7 @@ Config { font    = "xft:Sarasa Gothic J:size=9:antialias=true:hinting=true,Incon
                              ] 50
 
                       -- Time and date
-                    , Run Date "<box type=Full color=#fb4934><fc=#fb4934> \xf5ef  <fc=#fabd2f>%H:%M</fc> %a %d %m %Y </fc></box>" "date" 10
+                    , Run Date "<box type=Full color=#8ec07c><fc=#8ec07c> \xf5ef  <fc=#fabd2f>%I:%M %p</fc> %a %d %m %Y </fc></box>" "date" 10
                     , Run DynNetwork     [ "--template" ,"<box type=Full color=#8ec07c> <fc=#8ec07c>\xf0e8  \xf175<rx>KB \xf176<tx>KB </fc></box>"
                               ,"--Low"      , "1000"       -- units: B/s
                              , "--High"     , "5000"       -- units: B/s
@@ -57,17 +59,18 @@ Config { font    = "xft:Sarasa Gothic J:size=9:antialias=true:hinting=true,Incon
                     , Run Alsa "pulse" "Master" ["-t", "<box type=Full color=#B8BB26> <fc=#B8BB26>\xf028  <volume>%<status></fc> </box>" 
                     -- , "--" , "--on", "<fc=#B8BB26>[on]"
                     ]
-                    , Run Kbd            [ ("de" , "<box type=Full color=#fabd2f> <fc=#FABD2F>\xf40b  DE</fc> </box>")
-                             , ("us"         , "<box type=Full color=#fabd2f> <fc=#FABD2F>\xf40b  US</fc> </box>")
-                             ]
+                    -- , Run Kbd            [ ("de" , "<box type=Full color=#fabd2f> <fc=#FABD2F>\xf40b  DE</fc> </box>")
+                    --          , ("us"         , "<box type=Full color=#fabd2f> <fc=#FABD2F>\xf40b  US</fc> </box>")
+                    --          ]
 
                     , Run PipeReader "\xe386 Timer:/home/hts/.xmonad/fifo" "pipe"
                     , Run PipeReader " :/home/hts/.xmonad/recordingicon" "pipe2"
                       -- Prints out the left side items such as workspaces, layout, etc.
                       -- The workspaces are set to be 'clickable' in .xmonad/xmonad.hs
+                    -- , Run UnsafeStdinReader
                     , Run UnsafeStdinReader
                     ]
        , sepChar = "%"
        , alignSep = "}{"
-           , template = "<action=`~/.scripts/rofi_app_launcher.sh`><fc=#1d2021,#83a598><box type=Full color=#83a598>    </box></fc></action> %UnsafeStdinReader% }{ %pipe2% <action=`kitty --session ~/.config/kitty/nmtui.conf`>%dynnetwork%%wi%</action><action=`xfce4-power-manager-settings`> %battery% </action><action=`~/.scripts/Toggle_Keymap.sh`>%kbd%</action> %alsa:pulse:Master% <box type=Full color=#fa4934><fc=#fa4934> %pipe% </fc></box> %date% <box type=Full color=#83a598>%trayerpad%</box>"
+       , template = "<action=`~/.scripts/rofi_app_launcher.sh`><fc=#1d2021,#83a598><box type=Full color=#83a598>    </box></fc></action>%UnsafeStdinReader% }{%pipe2%<action=`kitty --session ~/.config/kitty/nmtui.conf`>%dynnetwork%%wi%</action><action=`xfce4-power-manager-settings`> %battery% </action>%alsa:pulse:Master% <box type=Full color=#fa4934><fc=#fa4934> %pipe% </fc></box> %date% <box type=Full color=#83a598>%trayerpad%</box>"
        }
