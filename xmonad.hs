@@ -103,6 +103,16 @@ import XMonad.Util.WindowProperties
 
 
 -----------------------------------Custom Layout---------------------------
+import XMonad.Util.NamedWindows ( getName )
+import Data.Traversable ( traverse )
+import Data.Maybe ( maybeToList )
+import Data.List ( (\\) )
+
+logTitles :: X (Maybe String) -- this is a Logger
+logTitles = withWindowSet $ fmap (Just . unwords) -- fuse window names
+                          . traverse (fmap show . getName) -- show window names
+                          . (\ws -> W.index ws \\ maybeToList (W.peek ws))
+                          -- all windows except the focused (may be slow)
 ----------------------------mupdf--------------------------------------------
 -- Terminimport XMonad.Hooks.EwmhDesktopsal
 -- The preferred terminal program, which is used in a binding below and by
@@ -888,7 +898,11 @@ padding = replicate 10 ' '
 
 
 main = do
-
+  spawn     "nitrogen --restore &"
+  spawn     "~/.xmonad/startup.sh"
+  spawn     "nitrogen --restore"
+  -- spawn "feh --bg-center ~/.xmonad/1920x1200.jpg"
+  --
   xmproc <- spawnPipe "xmobar ~/.xmonad/xmobarrc.hs"
 
 
