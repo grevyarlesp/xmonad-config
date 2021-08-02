@@ -79,14 +79,23 @@ import XMonad.Prompt.FuzzyMatch
 
 import XMonad.Util.NamedScratchpad
 import XMonad.Prompt.Shell 
+import XMonad.Util.NamedWindows ( getName )
+import Data.Traversable ( traverse )
+import Data.Maybe ( maybeToList )
+import Data.List ( (\\) )
 
+logTitles :: X (Maybe String) -- this is a Logger
+logTitles = withWindowSet $ fmap (Just . unwords) -- fuse window names
+                          . traverse (fmap show . getName) -- show window names
+                          . (\ws -> W.index ws \\ maybeToList (W.peek ws))
+                          -- all windows except the focused (may be slow)
 ----------------------------mupdf--------------------------------------------
 -- Terminimport XMonad.Hooks.EwmhDesktopsal
 -- The preferred terminal program, which is used in a binding below and by
 -- certain contrib modules.
 --
 
-myTerminal = "~/.scripts/launch_kitty.sh"
+myTerminal = "alacritty"
 
 -- The command to lock the screen or show the screensaver.
 myScreensaver = "dm-tool switch-to-greeter"
@@ -768,7 +777,6 @@ myXPromptConfig =
 --
 
 main = do
-
   spawn     "nitrogen --restore &"
   spawn     "~/.xmonad/startup.sh"
   spawn     "nitrogen --restore"
@@ -795,7 +803,10 @@ main = do
                 , ppTitle = xmobarColor color3 "" . shorten 50
                 , ppSep = " "
                , ppLayout = xmobarColor color3 "" .wrap "[" "]"
+                , ppExtras = [logTitles]
+                , ppOrder  = \(ws:l:t:ts:_) -> ws : l : t : [xmobarColor "gray" "" ts]
                 , ppOutput = hPutStrLn xmproc
+
          } 
          -- >> updatePointer (0.75, 0.75) (0.75, 0.75)
       }
