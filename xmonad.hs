@@ -185,41 +185,53 @@ myManageHook =
 -- The available layouts.  Note that each layout is separated by |||,
 -- which denotes layout choice.
 
-outerGaps    = 0
+outerGaps    = 10
 myGaps       = gaps [(U, outerGaps), (R, outerGaps), (L, outerGaps), (D, outerGaps)]
 addSpace     = renamed [CutWordsLeft 2] . spacing gap
 tab          = avoidStruts
-              $ renamed [Replace "Tabbed"]
-              $ addSpace
+              $ renamed [Replace "[T]"]
+              -- $ addTopBar
+              -- $ myGaps
               -- $ gaps [(U, 0), (R, outerGaps), (L, outerGaps), (D, 0)]
-               $ tabbedBottomAlways shrinkText myTabTheme
+              $ addSpace
+               $  (tabbedBottomAlways shrinkText myTabTheme)
               -- $ tabBar shrinkText myTabTheme Bottom (gaps [(D, 18)] $ Tall 1 0.03 0.5))
+
+addTopBar =  noFrillsDeco shrinkText topBarTheme
 
 myTall = renamed [Replace "Tall"]
           $ addSpace
           $ windowArrange 
           -- $ tabBar shrinkText myTabTheme Bottom (gaps[(D, 18)] $ (Tall 1 (3/100) (1/2)))
-          $ tabBar shrinkText myTabTheme Bottom (gaps[(D, 18)] $ (ResizableTall 1 (3/100) (1/2) []))
+          $ ResizableTall 1 (3/100) (1/2) []
+
+myBSP = renamed [CutWordsLeft 1]
+          $ addTopBar
+          $ windowNavigation
+          $ renamed [Replace "BSP"]
+          $ addTabs shrinkText myTabTheme
+          $ subLayout [] Simplest
+          $ myGaps
+          $ addSpace (BSP.emptyBSP)
 
 my3C = renamed [Replace "3C"]
       $ windowNavigation
       $ addSpace
-      $ tabBar shrinkText myTabTheme Bottom (gaps[(D, 18)] $ ThreeCol 1 (3/100) (1/2))
+      $ ThreeCol 1 (3/100) (1/2)
 
 myGrid = renamed [Replace "Grid"]
       $ addSpace
       $ windowNavigation
-      $ tabBar shrinkText myTabTheme Bottom (gaps [(D, 18)] $ Grid)
+      $ Grid
 
+-- myRez = renamed [Replace "TallR"]
+--       $ windowNavigation
+--       $ addSpace
+--       $ mouseResizableTile {draggerType = BordersDragger}
 
-myRez = renamed [Replace "TallR"]
-      $ windowNavigation
-      $ addSpace
-      $ tabBar shrinkText myTabTheme Bottom (gaps [(D, 18)] $ mouseResizableTile {draggerType = BordersDragger})
-
-layouts      = TL.toggleLayouts (avoidStruts myRez) (windowArrange (tab ||| avoidStruts (
-                      myTall ||| my3C ||| myGrid
-                  )))
+layouts      = (tab ||| avoidStruts (
+                      myTall ||| my3C ||| myGrid ||| myBSP
+                  ))
 
 
 myLayout    = smartBorders
@@ -328,7 +340,7 @@ xmobarCurrentForeground = background
 xmobarCurrentWorkspaceColor = "#51AFEF"
 
 -- Width of the window border in pixels.
-myBorderWidth = 2
+myBorderWidth = 0
 
 myNormalBorderColor     = color8
 myFocusedBorderColor    = color3
@@ -377,11 +389,11 @@ color7       = "#d5c4a1"
 color15      = "#fbf1c7"
 
 -- sizes
-gap         = 2
-topbar      = 5
+gap         = 10
+topbar      = 10
 border      = 0
-prompt      = 5
-status      = 5
+prompt      = 20
+status      = 20
 
 active      = blue
 activeWarn  = color1
@@ -411,12 +423,12 @@ topBarTheme = def
     , activeBorderColor     = active
     , activeColor           = active
     , activeTextColor       = active
-    , urgentBorderColor     = color1
+    , urgentBorderColor     = red
     , urgentTextColor       = yellow
     , decoHeight            = topbar
     }
 
--- addTopBar =  noFrillsDeco shrinkText topBarTheme
+red     = "#dc322f"
 
 myTabTheme = def
     { fontName = "xft:LiberationSans-Bold:size=10:antialias=true,ipamincho:size=10"
@@ -504,7 +516,7 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
   -- Toggle current focus window to fullscreen
   , ((modMask, xK_f), sendMessage $ Toggle FULL)
   , ((modMask, xK_s), sendMessage $ TL.Toggle "TallR")
-  , ((modMask .|. shiftMask, xK_p), sendMessage $ JumpToLayout "Tabbed")
+  , ((modMask .|. shiftMask, xK_p), sendMessage $ JumpToLayout "[T]")
 
   -- Mute volume.
   , ((0, xF86XK_AudioMute),
@@ -820,7 +832,7 @@ defaults = def {
 
     -- hooks, layouts
     layoutHook         = myLayout,
-    handleEventHook    = handleEventHook def <+> fullscreenEventHook,
+    handleEventHook    = fullscreenEventHook,
     manageHook         =   namedScratchpadManageHook scratchpads <+> manageDocks <+> myManageHook,
     startupHook        = myStartupHook
 }

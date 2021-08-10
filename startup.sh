@@ -67,8 +67,9 @@ fi
 #     insync start &
 # fi
 
-if [ -z "$(pgrep ibus-daemon)" ] ; then
-    ibus-daemon -drx &
+if [ -z "$(pgrep fcitx)" ] ; then
+    fcitx -dr
+fi
 
 if [ -z "$(pgrep dunst)" ] ; then
     dunst &
