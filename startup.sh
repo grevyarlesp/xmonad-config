@@ -43,4 +43,7 @@ fi
 if [ -z "$(pgrep thunderbird)" ]; then
     thunderbird &
 fi
+if [ -z "$(pgrep aw-qt)" ]; then
+    aw-qt &
+fi
 
