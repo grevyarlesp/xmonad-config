@@ -124,18 +124,18 @@ myTerminalDir = "alacritty --working-directory `xcwd`"
 myTerminal = "alacritty"
 
 -- The command to lock the screen or show the screensaver.
-myScreensaver = "~/.scripts/lock.sh"
+myScreensaver = "slock"
 
 -- The command to take a selective screenshot, where you select
 -- what you'd like to capture on the screen.
-mySelectScreenshotCliboard = "maim -s | xclip -selection clipboard -t image/png"
+mySelectScreenshotCliboard = "flameshot gui"
 
-mySelectScreenshot = "maim -s ~/Pictures/MAIM_Screenshot_$(date +%F-%T).png && notify-send \"Maim\" \"Region Screenshot taken\" -t 2000"
+mySelectScreenshot = "flameshot gui"
 -- The command to take a fullscreen screenshot.
-myScreenshot = "maim ~/Pictures/MAIM_Screenshot_$(date +%F-%T).png && notify-send \"Maim\" \"Full Screenshot taken\" -t 2000"
+myScreenshot = "flameshot gui"
 -- The command to use as a launcher, to launch commands that don't have
 -- preset keybindings.
-myLauncher = "~/.scripts/rofi_app_launcher.sh"
+myLauncher = "j4-dmenu-desktop"
 
 
 -----------------------------------------------------------------------
@@ -219,7 +219,7 @@ myManageHook =
 
 mySubTabbed  x = addTabs shrinkText myTabTheme $ subLayout [] Simplest x
 
-outerGaps    = 0
+outerGaps    = 10
 myGaps       = gaps [(U, outerGaps), (R, outerGaps), (L, outerGaps), (D, outerGaps)]
 addSpace     = renamed [CutWordsLeft 2] . spacing gap
 tab          = avoidStruts
@@ -240,13 +240,14 @@ myMagnifyTall = renamed [Replace "[MT]"]
           $ addSpace
           $ windowArrange 
           -- $ tabBar shrinkText myTabTheme Bottom (gaps[(D, 18)] $ (Tall 1 (3/100) (1/2)))
-          $ tabBar shrinkText myTabTheme Bottom (gaps[(D, 16)] $ (Mag.magnifier(ResizableTall 1 (3/100) (1/2) [])))
+          -- $ tabBar shrinkText myTabTheme Bottom (gaps[(D, 16)] $ (Mag.magnifier(ResizableTall 1 (3/100) (1/2) [])))
+          $ Mag.magnifier(ResizableTall 1 (3/100) (1/2) [])
 
 myMagnifyGrid = renamed [Replace "[MG]"]
       -- $ addTopBar
       $ windowNavigation
       $ addSpace
-      $ tabBar shrinkText myTabTheme Bottom (gaps [(D, 16)] $ (Mag.magnifier $ Grid)) 
+      $ Mag.magnifier $ Grid
 
 my3C = renamed [Replace "[=]"]
       $ mySubTabbed $ BR.boringWindows 
@@ -262,7 +263,7 @@ myGrid = renamed [Replace "[G]"]
 
 myRez = renamed [Replace "[S]"]
       $ windowNavigation
-      $ tabBar shrinkText myTabTheme Bottom (gaps [(D, 16)] $ simplestFloat)
+      $ simplestFloat
 
 -- layouts      = TL.toggleLayouts (avoidStruts myRez) (windowArrange (tab ||| avoidStruts (
 layouts      = TL.toggleLayouts (avoidStruts myRez) (windowArrange (tab ||| avoidStruts (
@@ -410,7 +411,7 @@ xmobarCurrentForeground = background
 xmobarCurrentWorkspaceColor = "#51AFEF"
 
 -- Width of the window border in pixels.
-myBorderWidth = 2
+myBorderWidth = 0
 
 myNormalBorderColor     = color8
 myFocusedBorderColor    = color4
@@ -459,11 +460,11 @@ color7       = "#d5c4a1"
 color15      = "#fbf1c7"
 
 -- sizes
-gap         = 0
-topbar      = 5
+gap         = 10
+topbar      = 10
 border      = 0
-prompt      = 5
-status      = 5
+prompt      = 20
+status      = 20
 
 active      = blue
 activeWarn  = color1
@@ -498,7 +499,7 @@ topBarTheme = def
     , decoHeight            = topbar
     }
 
--- addTopBar =  noFrillsDeco shrinkText topBarTheme
+addTopBar =  noFrillsDeco shrinkText topBarTheme
 
 myTabTheme = def
     -- { fontName = "xft:LiberationSans-Bold:size=9:antialias=true,ipamincho:size=10"
@@ -774,13 +775,8 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
   -- Toggle through tabes from the right
   , ((modMask, xK_Tab), onGroup W.focusDown')
   ]
+  ++
 
-  ++
-  [ ((modMask, xK_u), namedScratchpadAction scratchpads "todo")
-   , ((modMask, xK_i), namedScratchpadAction scratchpads "wiki")
-   , ((modMask, xK_g), namedScratchpadAction scratchpads "gen")
-  ]
-  ++
   [
     ((modMask, xK_o), shellPrompt myXPromptConfig)
     , ((modMask .|. shiftMask, xK_o), spawn "~/.scripts/mpdmenu")
@@ -852,7 +848,7 @@ myMouseBindings (XConfig {XMonad.modMask = modMask}) = M.fromList $
 myStartupHook = do
   setWMName "LG3D"
   spawn     "~/.xmonad/startup.sh"
-  setWindowSpacingEnabled False
+  setWindowSpacingEnabled True
   spawnOnce     "picom -b"
   setDefaultCursor xC_left_ptr
 
@@ -898,7 +894,6 @@ padding = replicate 10 ' '
 
 
 main = do
-  spawn     "nitrogen --restore &"
   spawn     "~/.xmonad/startup.sh"
   spawn     "nitrogen --restore"
   -- spawn "feh --bg-center ~/.xmonad/1920x1200.jpg"
@@ -916,7 +911,7 @@ main = do
                                False
          $ ewmh
          $ defaults {
-         logHook = dynamicLogWithPP (namedScratchpadFilterOutWorkspacePP xmobarPP {
+         logHook = dynamicLogWithPP xmobarPP {
                 ppCurrent = xmobarColor xmobarCurrentForeground xmobarCurrentBackground . wrap ("<box type=Full color=" ++ color4 ++ ">")  " </box>"
                 -- Hidden workspaces (no windows)
                 , ppHiddenNoWindows = xmobarColor color8 "" .wrap ("<box type=Full color=" ++ background ++ ">")  " </box>"
@@ -928,7 +923,7 @@ main = do
                , ppLayout = xmobarColor background color2 .wrap ("<action=xdotool key super+alt+space><box type=Full color=" ++ color2 ++ "><fn=1> ") " </fn></box></action>"
                 , ppTitle = xmobarColor color2 "" . wrap ("<fn=2> ")  " </fn>"
                 , ppOutput = hPutStrLn xmproc
-         })
+         }
          -- >> updatePointer (0.75, 0.75) (0.75, 0.75)
       }
 
@@ -947,11 +942,12 @@ defaults = def {
     -- key bindings
     keys               = myKeys,
     mouseBindings      = myMouseBindings,
-    handleEventHook = handleEventHook def <+> docksEventHook <+> fullscreenEventHook,
+    -- handleEventHook = handleEventHook def <+> docksEventHook <+> fullscreenEventHook,
     -- handleEventHook = serverModeEventHookCmd <+> serverModeEventHook <+> serverModeEventHookF "XMONAD_PRINT" (io . putStrLn) <+> docksEventHook <+> fullscreenEventHook,
     -- hooks, layouts
     layoutHook         = myLayout,
     -- handleEventHook    = handleEventHook def <+> fullscreenEventHook,
-    manageHook         = namedScratchpadManageHook scratchpads <+> manageDocks <+> myManageHook,
+    handleEventHook =  fullscreenEventHook,
+    manageHook         = manageDocks <+> myManageHook,
     startupHook        = myStartupHook
 }
