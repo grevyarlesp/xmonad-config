@@ -86,21 +86,21 @@ import XMonad.Prompt.Shell
 -- certain contrib modules.
 --
 
-myTerminal = "~/.scripts/launch_kitty.sh"
+myTerminal = "alacritty"
 
 -- The command to lock the screen or show the screensaver.
-myScreensaver = "dm-tool switch-to-greeter"
+myScreensaver = "slock"
 
 -- The command to take a selective screenshot, where you select
 -- what you'd like to capture on the screen.
-mySelectScreenshotCliboard = "maim -s | xclip -selection clipboard -t image/png"
+mySelectScreenshotCliboard = "flameshot gui"
 
-mySelectScreenshot = "maim -s ~/Pictures/MAIM_Screenshot_$(date +%F-%T).png && notify-send \"Maim\" \"Region Screenshot taken\" -t 2000"
+mySelectScreenshot = "flameshot gui"
 -- The command to take a fullscreen screenshot.
-myScreenshot = "maim ~/Pictures/MAIM_Screenshot_$(date +%F-%T).png && notify-send \"Maim\" \"Full Screenshot taken\" -t 2000"
+myScreenshot = "flameshot gui"
 -- The command to use as a launcher, to launch commands that don't have
 -- preset keybindings.
-myLauncher = "~/.scripts/rofi_app_launcher.sh"
+myLauncher = "j4-dmenu-desktop"
 
 
 -----------------------------------------------------------------------
@@ -118,12 +118,11 @@ xmobarEscape = concatMap doubleLts
 
 myWorkspaces :: [String]
 myWorkspaces = clickable . map xmobarEscape
-               $ ["1:\xf314 ", "2:\xf003 ", "3:\xf0c3 ", "4:\xe62b ","5:\xe62b ", "6:\xf016 ", "7:\xf044 ", "8:\xf126","9:\xf152 "]
+               $ ["1 \xfbe2  ", "2 \xf269  ", "3 \xf0c3 ", "4 \xe62b ","5 \xe62b ", "6 \xf016  ", "7 \xf044 ", "8 \xf126","9 \xf152  "]
   where
         clickable l = [ "<action=xdotool key super+" ++ show n ++ ">" ++ ws ++ "</action>" |
                       (i,ws) <- zip [1..9] l,
                       let n = i ]
-
     -- [((m .|. modMask, k), windows $ f i)
     --   | (i, k) <- zip (XMonad.workspaces conf) [xK_1 .. xK_9]
     --   , (f, m) <- [(W.greedyView, 0), (W.shift, shiftMask)]]
@@ -787,16 +786,19 @@ main = do
                                False
          $ ewmh
          $ defaults {
-         logHook = dynamicLogWithPP xmobarPP {
-                ppCurrent = xmobarColor xmobarCurrentForeground xmobarCurrentBackground . wrap " " " "
-                , ppHiddenNoWindows = xmobarColor color8 "" .wrap " " " "        -- Hidden workspaces (no windows)
-                , ppVisible = xmobarColor color4 "" . wrap " " " " -- Visible but not current workspace (Xinerama only)
-                , ppHidden = xmobarColor color3  "" . wrap " " " " -- Hidden workspaces in xmobar
-                , ppTitle = xmobarColor color3 "" . shorten 50
-                , ppSep = " "
-               , ppLayout = xmobarColor color3 "" .wrap "[" "]"
+         logHook = dynamicLogWithPP (namedScratchpadFilterOutWorkspacePP xmobarPP {
+                ppCurrent = xmobarColor xmobarCurrentForeground xmobarCurrentBackground . wrap ("<box type=Full color=" ++ color4 ++ ">")  " </box>"
+                -- Hidden workspaces (no windows)
+                , ppHiddenNoWindows = xmobarColor color8 "" .wrap ("<box type=Full color=" ++ background ++ ">")  " </box>"
+                 -- Visible but not current workspace (Xinerama only)
+                , ppVisible = xmobarColor color4 "" .wrap ("<box type=Full color=" ++ background ++ ">")  " </box>"
+                 -- Hidden workspaces in xmobar
+                , ppHidden = xmobarColor color4  "" .wrap ("<box type=Full color=" ++ background ++ ">")  " </box>"
+                , ppSep = ""
+               , ppLayout = xmobarColor background color2 .wrap ("<action=xdotool key super+alt+space><box type=Full color=" ++ color2 ++ "><fn=1> ") " </fn></box></action>"
+                , ppTitle = xmobarColor color2 "" . wrap ("<fn=2> ")  " </fn>"
                 , ppOutput = hPutStrLn xmproc
-         } 
+         })
          -- >> updatePointer (0.75, 0.75) (0.75, 0.75)
       }
 
