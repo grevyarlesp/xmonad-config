@@ -124,7 +124,7 @@ tab          =  avoidStruts
                $ renamed [Replace "Tabbed"]
                $ addTopBar
                $ myGaps
-               $ tabbed shrinkText myTabTheme
+               $ tabbedBottomAlways shrinkText myTabTheme
 
 layouts      = avoidStruts (
                 (
@@ -256,7 +256,7 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
   --
 
   -- Start a terminal.  Terminal to start is specified by myTerminal variable.
-  [ ((modMask .|. shiftMask, xK_Return),
+  [ ((modMask .|. altMask, xK_Return),
      spawn $ XMonad.terminal conf)
 
   -- Lock the screen using command specified by myScreensaver.
@@ -312,7 +312,7 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
   --
 
   -- Close focused window.
-  , ((modMask .|. shiftMask, xK_c),
+  , ((modMask .|. shiftMask, xK_w),
      kill)
 
   -- Cycle through the available layout algorithms.
@@ -379,7 +379,7 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
      io (exitWith ExitSuccess))
 
   -- Restart xmonad.
-  , ((modMask, xK_q),
+  , ((modMask .|. altMask, xK_r),
      restart "xmonad" True)
   ]
   ++
