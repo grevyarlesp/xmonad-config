@@ -62,9 +62,6 @@ Config { font    = "xft:Sarasa Gothic J:pixelsize=12:antialias=true:hinting=true
                     -- , Run Kbd            [ ("de" , "<box type=Full color=#fabd2f> <fc=#FABD2F>\xf40b  DE</fc> </box>")
                     --          , ("us"         , "<box type=Full color=#fabd2f> <fc=#FABD2F>\xf40b  US</fc> </box>")
                     --          ]
-
-                    , Run PipeReader "\xe386 Timer:/home/hts/.xmonad/fifo" "pipe"
-                    , Run PipeReader " :/home/hts/.xmonad/recordingicon" "pipe2"
                       -- Prints out the left side items such as workspaces, layout, etc.
                       -- The workspaces are set to be 'clickable' in .xmonad/xmonad.hs
                     -- , Run UnsafeStdinReader
@@ -72,5 +69,5 @@ Config { font    = "xft:Sarasa Gothic J:pixelsize=12:antialias=true:hinting=true
                     ]
        , sepChar = "%"
        , alignSep = "}{"
-       , template = "<action=`~/.scripts/rofi_app_launcher.sh`><fc=#1d2021,#83a598><box type=Full color=#83a598>    </box></fc></action>%UnsafeStdinReader% }{%pipe2%<action=`kitty --session ~/.config/kitty/nmtui.conf`>%dynnetwork%%wi%</action><action=`xfce4-power-manager-settings`> %battery% </action>%alsa:pulse:Master% <box type=Full color=#fa4934><fc=#fa4934> %pipe% </fc></box> %date% <box type=Full color=#83a598>%trayerpad%</box>"
+       , template = "<action=`~/.scripts/rofi_app_launcher.sh`><fc=#1d2021,#83a598><box type=Full color=#83a598>    </box></fc></action>%UnsafeStdinReader% }{<action=`kitty --session ~/.config/kitty/nmtui.conf`>%dynnetwork%%wi%</action><action=`xfce4-power-manager-settings`> %battery% </action>%alsa:pulse:Master%<box type=Full color=#fa4934></box> %date% <box type=Full color=#83a598>%trayerpad%</box>"
        }

@@ -40,4 +40,7 @@ fi
 if [ -z "$(pgrep udiskie)" ]; then
     udiskie &
 fi
+if [ -z "$(pgrep thunderbird)" ]; then
+    thunderbird &
+fi
 

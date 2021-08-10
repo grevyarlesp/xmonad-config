@@ -1,6 +1,5 @@
 -- xmonad config used by Malcolm MD
 -- https://github.com/randomthought/xmonad-config
-
 import System.IO
 import System.Exit
 -- import System.Taffybar.Hooks.PagerHints (pagerHints)
@@ -38,6 +37,7 @@ import XMonad.Layout.WindowNavigation
 import XMonad.Layout.LayoutCombinators
 
 import XMonad.Util.Run(spawnPipe)
+import XMonad.Util.SpawnOnce
 import XMonad.Util.EZConfig(additionalKeys)
 import XMonad.Util.Cursor
 
@@ -231,7 +231,7 @@ xmobarCurrentForeground = background
 xmobarCurrentWorkspaceColor = "#51AFEF"
 
 -- Width of the window border in pixels.
-myBorderWidth = 2
+myBorderWidth = 0
 
 myNormalBorderColor     = color8
 myFocusedBorderColor    = color4
@@ -289,8 +289,12 @@ unfocusColor = base02
 
 -- myFont      = "-*-Zekton-medium-*-*-*-*-160-*-*-*-*-*-*"
 -- myBigFont   = "-*-Zekton-medium-*-*-*-*-240-*-*-*-*-*-*"
-myFont      = "xft:Zekton:size=9:bold:antialias=true"
-myBigFont   = "xft:Zekton:size=9:bold:antialias=true"
+-- myFont      = "xft:Zekton:size=9:bold:antialias=true"
+-- myBigFont   = "xft:Zekton:size=9:bold:antialias=true"
+-- myWideFont  = "xft:Eurostar Black Extended:"
+            -- ++ "style=Regular:pixelsize=180:hinting=true"
+myFont      = "xft:Sarasa Gothic J:size=9:bold:antialias=true"
+myBigFont   = "xft:Sarasa Gothic J:size=9:bold:antialias=true"
 myWideFont  = "xft:Eurostar Black Extended:"
             ++ "style=Regular:pixelsize=180:hinting=true"
 
@@ -299,12 +303,12 @@ myWideFont  = "xft:Eurostar Black Extended:"
 topBarTheme = def
     {
       fontName              = myFont
-    , inactiveBorderColor   = base03
-    , inactiveColor         = base03
-    , inactiveTextColor     = base03
-    , activeBorderColor     = active
-    , activeColor           = active
-    , activeTextColor       = active
+    , inactiveBorderColor   = background
+    , inactiveColor         = background
+    , inactiveTextColor         = background
+    , activeBorderColor     = color4
+    , activeColor           = color4
+    , activeTextColor           = color4
     , urgentBorderColor     = red
     , urgentTextColor       = yellow
     , decoHeight            = topbar
@@ -313,12 +317,12 @@ topBarTheme = def
 
 myTabTheme = def
     { fontName              = myFont
-    , activeColor           = active
-    , inactiveColor         = base02
-    , activeBorderColor     = active
-    , inactiveBorderColor   = base02
-    , activeTextColor       = base03
-    , inactiveTextColor     = base00
+    , activeColor           = color4
+    , activeBorderColor     = color4
+    , activeTextColor       = background
+    , inactiveColor         = background
+    , inactiveBorderColor   = background
+    , inactiveTextColor     = foreground
     }
 
 ------------------------------------------------------------------------
@@ -351,8 +355,8 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
      spawn myLauncher)
 
   -- Take a selective screenshot using the command specified by mySelectScreenshot.
-  -- , ((modMask .|. shiftMask, xK_p),
-     -- spawn mySelectScreenshot)
+  , ((modMask, xK_Print),
+     spawn mySelectScreenshot)
 
   -- Take a full screenshot using the command specified by myScreenshot.
   -- , ((modMask .|. controlMask .|. shiftMask, xK_p),
@@ -569,6 +573,7 @@ myMouseBindings (XConfig {XMonad.modMask = modMask}) = M.fromList $
 myStartupHook = do
   setWMName "LG3D"
   spawn     "bash ~/.xmonad/startup.sh"
+  spawnOnce     "picom --experimental-backends -b"
   setDefaultCursor xC_left_ptr
 
 
@@ -604,6 +609,7 @@ main = do
          }
          -- >> updatePointer (0.75, 0.75) (0.75, 0.75)
       }
+
 
 ------------------------------------------------------------------------
 -- Combine it all together
