@@ -47,45 +47,31 @@ import qualified Data.Map        as M
 -- The preferred terminal program, which is used in a binding below and by
 -- certain contrib modules.
 --
-myTerminal = "alacritty"
+myTerminal = "termite"
 
 -- The command to lock the screen or show the screensaver.
-myScreensaver = "slock"
+myScreensaver = "dm-tool switch-to-greeter"
 
 -- The command to take a selective screenshot, where you select
 -- what you'd like to capture on the screen.
-mySelectScreenshotCliboard = "flameshot gui"
+mySelectScreenshot = "select-screenshot"
 
-mySelectScreenshot = "flameshot gui"
 -- The command to take a fullscreen screenshot.
-myScreenshot = "flameshot gui"
+myScreenshot = "xfce4-screenshooter"
+
 -- The command to use as a launcher, to launch commands that don't have
 -- preset keybindings.
-myLauncher = "j4-dmenu-desktop"
+myLauncher = "rofi -show"
+
 
 
 ------------------------------------------------------------------------
 -- Workspaces
 -- The default number of workspaces (virtual screens) and their names.
 --
--- myWorkspaces = ["1: term","2: web","3: "","4: media"] ++ map show [5..9]
+myWorkspaces = ["1: term","2: web","3: code","4: media"] ++ map show [5..9]
 
-xmobarEscape :: String -> String
-xmobarEscape = concatMap doubleLts
-  where
-        doubleLts '<' = "<<"
-        doubleLts x   = [x]
 
-myWorkspaces :: [String]
-myWorkspaces = clickable . map xmobarEscape
-               $ ["1 \xfbe2  ", "2 \xf269  ", "3 \xf0c3 ", "4 \xe62b ","5 \xe62b ", "6 \xf016  ", "7 \xf044 ", "8 \xf126","9 \xf152  "]
-  where
-        clickable l = [ "<action=xdotool key super+" ++ show n ++ ">" ++ ws ++ "</action>" |
-                      (i,ws) <- zip [1..9] l,
-                      let n = i ]
-    -- [((m .|. modMask, k), windows $ f i)
-    --   | (i, k) <- zip (XMonad.workspaces conf) [xK_1 .. xK_9]
-    --   , (f, m) <- [(W.greedyView, 0), (W.shift, shiftMask)]]
 ------------------------------------------------------------------------
 -- Window rules
 -- Execute arbitrary actions and WindowSet manipulations when managing
@@ -134,56 +120,11 @@ myManageHook = composeAll
 outerGaps    = 10
 myGaps       = gaps [(U, outerGaps), (R, outerGaps), (L, outerGaps), (D, outerGaps)]
 addSpace     = renamed [CutWordsLeft 2] . spacing gap
-
--- tab          = avoidStruts
---               $ renamed [Replace "[T]"]
---               -- $ addTopBar
---               -- $ myGaps
---               -- $ gaps [(U, 0), (R, outerGaps), (L, outerGaps), (D, 0)]
---               $ addSpace
---                $  (tabbedBottomAlways shrinkText myTabTheme)
---               -- $ tabBar shrinkText myTabTheme Bottom (gaps [(D, 18)] $ Tall 1 0.03 0.5))
 tab          =  avoidStruts
                $ renamed [Replace "Tabbed"]
                $ addTopBar
                $ myGaps
-               $ tabbedBottomAlways shrinkText myTabTheme
-
-addTopBar =  noFrillsDeco shrinkText topBarTheme
-
-myTall = renamed [Replace "Tall"]
-          $ addSpace
-          $ windowArrange 
-          -- $ tabBar shrinkText myTabTheme Bottom (gaps[(D, 18)] $ (Tall 1 (3/100) (1/2)))
-          $ ResizableTall 1 (3/100) (1/2) []
-
-myBSP = renamed [CutWordsLeft 1]
-          $ addTopBar
-          $ windowNavigation
-          $ renamed [Replace "BSP"]
-          $ addTabs shrinkText myTabTheme
-          $ subLayout [] Simplest
-          $ myGaps
-          $ addSpace (BSP.emptyBSP)
-
-my3C = renamed [Replace "3C"]
-      $ windowNavigation
-      $ addSpace
-      $ ThreeCol 1 (3/100) (1/2)
-
-myGrid = renamed [Replace "Grid"]
-      $ addSpace
-      $ windowNavigation
-      $ Grid
-
--- myRez = renamed [Replace "TallR"]
---       $ windowNavigation
---       $ addSpace
---       $ mouseResizableTile {draggerType = BordersDragger}
-
-layouts      = (tab ||| avoidStruts (
-                      myTall ||| my3C ||| myGrid ||| myBSP
-                  ))
+               $ tabbed shrinkText myTabTheme
 
 layouts      = avoidStruts (
                 (
@@ -286,7 +227,6 @@ topBarTheme = def
     , decoHeight            = topbar
     }
 
-red     = "#dc322f"
 addTopBar =  noFrillsDeco shrinkText topBarTheme
 
 myTabTheme = def
@@ -316,7 +256,7 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
   --
 
   -- Start a terminal.  Terminal to start is specified by myTerminal variable.
-  [ ((modMask .|. altMask, xK_Return),
+  [ ((modMask .|. shiftMask, xK_Return),
      spawn $ XMonad.terminal conf)
 
   -- Lock the screen using command specified by myScreensaver.
@@ -338,8 +278,6 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
 
   -- Toggle current focus window to fullscreen
   , ((modMask, xK_f), sendMessage $ Toggle FULL)
-  , ((modMask, xK_s), sendMessage $ TL.Toggle "TallR")
-  , ((modMask .|. shiftMask, xK_p), sendMessage $ JumpToLayout "[T]")
 
   -- Mute volume.
   , ((0, xF86XK_AudioMute),
@@ -374,7 +312,7 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
   --
 
   -- Close focused window.
-  , ((modMask .|. shiftMask, xK_w),
+  , ((modMask .|. shiftMask, xK_c),
      kill)
 
   -- Cycle through the available layout algorithms.
@@ -441,7 +379,7 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
      io (exitWith ExitSuccess))
 
   -- Restart xmonad.
-  , ((modMask .|. altMask, xK_r),
+  , ((modMask, xK_q),
      restart "xmonad" True)
   ]
   ++
@@ -568,20 +506,12 @@ main = do
          $ ewmh
          -- $ pagerHints -- uncomment to use taffybar
          $ defaults {
-         logHook = dynamicLogWithPP (namedScratchpadFilterOutWorkspacePP xmobarPP {
-                ppCurrent = xmobarColor xmobarCurrentForeground xmobarCurrentBackground . wrap ("<box type=Full color=" ++ color4 ++ ">")  " </box>"
-                -- Hidden workspaces (no windows)
-                , ppHiddenNoWindows = xmobarColor color8 "" .wrap ("<box type=Full color=" ++ background ++ ">")  " </box>"
-                 -- Visible but not current workspace (Xinerama only)
-                , ppVisible = xmobarColor color4 "" .wrap ("<box type=Full color=" ++ background ++ ">")  " </box>"
-                 -- Hidden workspaces in xmobar
-                , ppHidden = xmobarColor color4  "" .wrap ("<box type=Full color=" ++ background ++ ">")  " </box>"
-                , ppSep = ""
-               , ppLayout = xmobarColor background color2 .wrap ("<action=xdotool key super+alt+space><box type=Full color=" ++ color2 ++ "><fn=1> ") " </fn></box></action>"
-                , ppTitle = xmobarColor color2 "" . wrap ("<fn=2> ")  " </fn>"
+         logHook = dynamicLogWithPP xmobarPP {
+                  ppCurrent = xmobarColor xmobarCurrentWorkspaceColor "" . wrap "[" "]"
+                , ppTitle = xmobarColor xmobarTitleColor "" . shorten 50
+                , ppSep = "   "
                 , ppOutput = hPutStrLn xmproc
-         })
-         -- >> updatePointer (0.75, 0.75) (0.75, 0.75)
+         } >> updatePointer (0.75, 0.75) (0.75, 0.75)
       }
 
 ------------------------------------------------------------------------

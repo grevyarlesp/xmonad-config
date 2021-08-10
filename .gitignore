@@ -2,4 +2,7 @@ xmonad-x86-64-linux
 *.o
 *.hi
 *.errors
+pipe
+fifo
+k
 tags
