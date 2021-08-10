@@ -1,5 +1,4 @@
-xmonad-x86-64-linux
-./xmonad-x86-64-linux
+"xmonad-x86-64-linux"
 *.o
 *.hi
 *.errors
@@ -7,3 +6,12 @@ pipe
 fifo
 k
 tags
+
+ .*.swp
+artwork/
+*.hi
+*.o
+prompt-history
+xmonad-x86_64-linux
+xmonad.errors
+xmonad.state
