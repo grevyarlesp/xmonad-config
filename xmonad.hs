@@ -47,21 +47,21 @@ import qualified Data.Map        as M
 -- The preferred terminal program, which is used in a binding below and by
 -- certain contrib modules.
 --
-myTerminal = "termite"
+myTerminal = "alacritty"
 
 -- The command to lock the screen or show the screensaver.
-myScreensaver = "dm-tool switch-to-greeter"
+myScreensaver = "slock"
 
 -- The command to take a selective screenshot, where you select
 -- what you'd like to capture on the screen.
-mySelectScreenshot = "select-screenshot"
+mySelectScreenshot = "flameshot gui"
 
 -- The command to take a fullscreen screenshot.
-myScreenshot = "xfce4-screenshooter"
+myScreenshot = "flameshot gui"
 
 -- The command to use as a launcher, to launch commands that don't have
 -- preset keybindings.
-myLauncher = "rofi -show"
+myLauncher = "j4-dmenu-desktop"
 
 
 
