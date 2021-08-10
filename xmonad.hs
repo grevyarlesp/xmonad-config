@@ -7,7 +7,7 @@ import System.Exit
 
 import qualified Data.List as L
 
-import XMonad
+import XMonad hiding ( (|||) )
 import XMonad.Actions.Navigation2D
 import XMonad.Actions.UpdatePointer
 
@@ -27,11 +27,15 @@ import XMonad.Layout.Spacing
 import XMonad.Layout.MultiToggle
 import XMonad.Layout.MultiToggle.Instances
 import XMonad.Layout.NoFrillsDecoration
+import XMonad.Layout.Grid
 import XMonad.Layout.Renamed
 import XMonad.Layout.Simplest
 import XMonad.Layout.SubLayouts
-import XMonad.Layout.WindowNavigation
 import XMonad.Layout.ZoomRow
+import XMonad.Layout.ResizableTile
+import XMonad.Layout.WindowNavigation
+
+import XMonad.Layout.LayoutCombinators
 
 import XMonad.Util.Run(spawnPipe)
 import XMonad.Util.EZConfig(additionalKeys)
@@ -131,7 +135,7 @@ myManageHook = composeAll
 -- The available layouts.  Note that each layout is separated by |||,
 -- which denotes layout choice.
 
-outerGaps    = 10
+outerGaps    = 0
 myGaps       = gaps [(U, outerGaps), (R, outerGaps), (L, outerGaps), (D, outerGaps)]
 addSpace     = renamed [CutWordsLeft 2] . spacing gap
 
@@ -144,18 +148,16 @@ addSpace     = renamed [CutWordsLeft 2] . spacing gap
 --                $  (tabbedBottomAlways shrinkText myTabTheme)
 --               -- $ tabBar shrinkText myTabTheme Bottom (gaps [(D, 18)] $ Tall 1 0.03 0.5))
 tab          =  avoidStruts
-               $ renamed [Replace "Tabbed"]
-               $ addTopBar
+               $ renamed [Replace "[T]"]
                $ myGaps
                $ tabbedBottomAlways shrinkText myTabTheme
 
 addTopBar =  noFrillsDeco shrinkText topBarTheme
 
 myTall = renamed [Replace "Tall"]
-          $ addSpace
-          $ windowArrange 
+          $ addTopBar
           -- $ tabBar shrinkText myTabTheme Bottom (gaps[(D, 18)] $ (Tall 1 (3/100) (1/2)))
-          $ ResizableTall 1 (3/100) (1/2) []
+          $ addSpace(ResizableTall 1 (3/100) (1/2) [])
 
 myBSP = renamed [CutWordsLeft 1]
           $ addTopBar
@@ -167,11 +169,12 @@ myBSP = renamed [CutWordsLeft 1]
           $ addSpace (BSP.emptyBSP)
 
 my3C = renamed [Replace "3C"]
+      $ addTopBar
       $ windowNavigation
-      $ addSpace
-      $ ThreeCol 1 (3/100) (1/2)
+      $ addSpace (ThreeCol 1 (3/100) (1/2))
 
 myGrid = renamed [Replace "Grid"]
+      $ addTopBar
       $ addSpace
       $ windowNavigation
       $ Grid
@@ -181,24 +184,22 @@ myGrid = renamed [Replace "Grid"]
 --       $ addSpace
 --       $ mouseResizableTile {draggerType = BordersDragger}
 
-layouts      = (tab ||| avoidStruts (
-                      myTall ||| my3C ||| myGrid ||| myBSP
-                  ))
-
-layouts      = avoidStruts (
-                (
-                    renamed [CutWordsLeft 1]
-                  $ addTopBar
-                  $ windowNavigation
-                  $ renamed [Replace "BSP"]
-                  $ addTabs shrinkText myTabTheme
-                  $ subLayout [] Simplest
-                  $ myGaps
-                  $ addSpace (BSP.emptyBSP)
-                )
-                ||| tab
-               )
-
+layouts      =  tab ||| avoidStruts(myTall ||| my3C ||| myGrid ||| myBSP)
+-- 
+-- layouts      = avoidStruts (
+--                 (
+--                     renamed [CutWordsLeft 1]
+--                   $ addTopBar
+--                   $ windowNavigation
+--                   $ renamed [Replace "BSP"]
+--                   $ addTabs shrinkText myTabTheme
+--                   $ subLayout [] Simplest
+--                   $ myGaps
+--                   $ addSpace (BSP.emptyBSP)
+--                 )
+--                 ||| tab
+--                )
+-- 
 myLayout    = smartBorders
               $ mkToggle (NOBORDERS ?? FULL ?? EOT)
               $ layouts
@@ -222,16 +223,18 @@ myNav2DConf = def
 -- Colors and borders
 
 -- Color of current window title in xmobar.
-xmobarTitleColor = "#C678DD"
+xmobarTitleColor = background
+xmobarCurrentBackground = color4
+xmobarCurrentForeground = background
 
 -- Color of current workspace in xmobar.
 xmobarCurrentWorkspaceColor = "#51AFEF"
 
 -- Width of the window border in pixels.
-myBorderWidth = 0
+myBorderWidth = 2
 
-myNormalBorderColor     = "#000000"
-myFocusedBorderColor    = active
+myNormalBorderColor     = color8
+myFocusedBorderColor    = color4
 
 base03  = "#002b36"
 base02  = "#073642"
@@ -243,15 +246,36 @@ base2   = "#eee8d5"
 base3   = "#fdf6e3"
 yellow  = "#b58900"
 orange  = "#cb4b16"
-red     = "#dc322f"
 magenta = "#d33682"
 violet  = "#6c71c4"
 blue    = "#268bd2"
 cyan    = "#2aa198"
-green   = "#859900"
+red    = "#2aa198"
+
+
+background = "#1a1b26"
+foreground = "#c0caf5"
+
+color0 = "#15161E"
+color1= "#f7768e"
+color2= "#9ece6a"
+color3= "#e0af68"
+color4= "#7aa2f7"
+color5= "#bb9af7"
+color6= "#7dcfff"
+color7= "#a9b1d6"
+
+color8  =  "#414868"
+color9  =  "#f7768e"
+color10 = "#9ece6a"
+color11 = "#e0af68"
+color12 = "#7aa2f7"
+color13 = "#bb9af7"
+color14 = "#7dcfff"
+color15 = "#c0caf5"
 
 -- sizes
-gap         = 10
+gap         = 2
 topbar      = 10
 border      = 0
 prompt      = 20
@@ -286,8 +310,6 @@ topBarTheme = def
     , decoHeight            = topbar
     }
 
-red     = "#dc322f"
-addTopBar =  noFrillsDeco shrinkText topBarTheme
 
 myTabTheme = def
     { fontName              = myFont
@@ -329,16 +351,16 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
      spawn myLauncher)
 
   -- Take a selective screenshot using the command specified by mySelectScreenshot.
-  , ((modMask .|. shiftMask, xK_p),
-     spawn mySelectScreenshot)
+  -- , ((modMask .|. shiftMask, xK_p),
+     -- spawn mySelectScreenshot)
 
   -- Take a full screenshot using the command specified by myScreenshot.
-  , ((modMask .|. controlMask .|. shiftMask, xK_p),
-     spawn myScreenshot)
+  -- , ((modMask .|. controlMask .|. shiftMask, xK_p),
+     -- spawn myScreenshot)
 
   -- Toggle current focus window to fullscreen
   , ((modMask, xK_f), sendMessage $ Toggle FULL)
-  , ((modMask, xK_s), sendMessage $ TL.Toggle "TallR")
+  -- , ((modMask, xK_s), sendMessage $ TL.Toggle "TallR")
   , ((modMask .|. shiftMask, xK_p), sendMessage $ JumpToLayout "[T]")
 
   -- Mute volume.
@@ -378,7 +400,7 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
      kill)
 
   -- Cycle through the available layout algorithms.
-  , ((modMask, xK_space),
+  , ((modMask .|. altMask, xK_space),
      sendMessage NextLayout)
 
   --  Reset the layouts on the current workspace to default.
@@ -422,7 +444,7 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
      sendMessage Expand)
 
   -- Push window back into tiling.
-  , ((modMask, xK_t),
+  , ((modMask, xK_Delete),
      withFocused $ windows . W.sink)
 
   -- Increment the number of windows in the master area.
@@ -451,14 +473,13 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
   [((m .|. modMask, k), windows $ f i)
       | (i, k) <- zip (XMonad.workspaces conf) [xK_1 .. xK_9]
       , (f, m) <- [(W.greedyView, 0), (W.shift, shiftMask)]]
-  ++
 
   -- mod-{w,e,r}, Switch to physical/Xinerama screens 1, 2, or 3
   -- mod-shift-{w,e,r}, Move client to screen 1, 2, or 3
-  [((m .|. modMask, key), screenWorkspace sc >>= flip whenJust (windows . f))
-      | (key, sc) <- zip [xK_w, xK_e, xK_r] [0..]
-      , (f, m) <- [(W.view, 0), (W.shift, shiftMask)]]
-
+--   [((m .|. modMask, key), screenWorkspace sc >>= flip whenJust (windows . f))
+--       | (key, sc) <- zip [xK_w, xK_e, xK_r] [0..]
+--       , (f, m) <- [(W.view, 0), (W.shift, shiftMask)]]
+-- 
 
   ++
   -- Bindings for manage sub tabs in layouts please checkout the link below for reference
@@ -568,7 +589,7 @@ main = do
          $ ewmh
          -- $ pagerHints -- uncomment to use taffybar
          $ defaults {
-         logHook = dynamicLogWithPP (namedScratchpadFilterOutWorkspacePP xmobarPP {
+         logHook = dynamicLogWithPP xmobarPP {
                 ppCurrent = xmobarColor xmobarCurrentForeground xmobarCurrentBackground . wrap ("<box type=Full color=" ++ color4 ++ ">")  " </box>"
                 -- Hidden workspaces (no windows)
                 , ppHiddenNoWindows = xmobarColor color8 "" .wrap ("<box type=Full color=" ++ background ++ ">")  " </box>"
@@ -580,7 +601,7 @@ main = do
                , ppLayout = xmobarColor background color2 .wrap ("<action=xdotool key super+alt+space><box type=Full color=" ++ color2 ++ "><fn=1> ") " </fn></box></action>"
                 , ppTitle = xmobarColor color2 "" . wrap ("<fn=2> ")  " </fn>"
                 , ppOutput = hPutStrLn xmproc
-         })
+         }
          -- >> updatePointer (0.75, 0.75) (0.75, 0.75)
       }
 
