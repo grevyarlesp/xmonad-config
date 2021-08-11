@@ -40,6 +40,7 @@ import XMonad.Util.Run(spawnPipe)
 import XMonad.Util.SpawnOnce
 import XMonad.Util.EZConfig(additionalKeys)
 import XMonad.Util.Cursor
+import XMonad.Util.NamedScratchpad
 
 import Graphics.X11.ExtraTypes.XF86
 import qualified XMonad.StackSet as W
@@ -51,6 +52,18 @@ import qualified Data.Map        as M
 -- The preferred terminal program, which is used in a binding below and by
 -- certain contrib modules.
 --
+--
+--
+scratchpads = [
+-- run htop in xterm, find it by title, use default floating window placement
+
+-- run stardict, find it by class name, place it in the floating window
+-- 1/6 of screen width from the left, 1/6 of screen height
+-- from the top, 2/3 of screen width by 2/3 of screen height
+
+-- run gvim, find by role, don't float
+    NS "email" "thunderbird" (title =? "thunderbird") defaultFloating ]
+
 myTerminal = "alacritty"
 
 -- The command to lock the screen or show the screensaver.
@@ -135,7 +148,7 @@ myManageHook = composeAll
 -- The available layouts.  Note that each layout is separated by |||,
 -- which denotes layout choice.
 
-outerGaps    = 0
+outerGaps    = 5
 myGaps       = gaps [(U, outerGaps), (R, outerGaps), (L, outerGaps), (D, outerGaps)]
 addSpace     = renamed [CutWordsLeft 2] . spacing gap
 
@@ -276,7 +289,7 @@ color15 = "#c0caf5"
 
 -- sizes
 gap         = 2
-topbar      = 10
+topbar      = 5
 border      = 0
 prompt      = 20
 status      = 20
@@ -321,7 +334,7 @@ myTabTheme = def
     , activeBorderColor     = color4
     , activeTextColor       = background
     , inactiveColor         = background
-    , inactiveBorderColor   = background
+    , inactiveBorderColor   = color4
     , inactiveTextColor     = foreground
     }
 
@@ -341,9 +354,17 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
   -- Custom key bindings
   --
 
+  [
+  ((modMask .|. controlMask .|. shiftMask, xK_m), namedScratchpadAction scratchpads "email")
+  ]
+
   -- Start a terminal.  Terminal to start is specified by myTerminal variable.
+  ++
   [ ((modMask .|. altMask, xK_Return),
      spawn $ XMonad.terminal conf)
+
+  , ((modMask .|. shiftMask, xK_Return),
+     spawn "dolphin `xcwd`")
 
   -- Lock the screen using command specified by myScreensaver.
   , ((modMask, xK_0),
@@ -430,6 +451,8 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
   -- Swap the focused window and the master window.
   , ((modMask, xK_Return),
      windows W.swapMaster)
+
+
 
   -- Swap the focused window with the next window.
   , ((modMask .|. shiftMask, xK_j),
@@ -525,6 +548,12 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
   -- , ((modMask .|. controlMask,               xK_n     ), sendMessage BSP.SelectNode)
   -- , ((modMask .|. shiftMask,                 xK_n     ), sendMessage BSP.MoveNode)
   ]
+  ++
+  -- Scripts
+  [
+
+  ((altMask, xK_space    ), spawn "~/.scripts/rofi-search.sh")
+  ]
 
 ------------------------------------------------------------------------
 -- Mouse bindings
@@ -573,7 +602,7 @@ myMouseBindings (XConfig {XMonad.modMask = modMask}) = M.fromList $
 myStartupHook = do
   setWMName "LG3D"
   spawn     "bash ~/.xmonad/startup.sh"
-  spawnOnce     "picom --experimental-backends -b"
+  spawnOnce     "picom -b"
   setDefaultCursor xC_left_ptr
 
 
