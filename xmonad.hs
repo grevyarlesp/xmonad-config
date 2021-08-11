@@ -36,6 +36,12 @@ import XMonad.Layout.WindowNavigation
 
 import XMonad.Layout.LayoutCombinators
 
+
+import XMonad.Actions.Minimize 
+import XMonad.Layout.Minimize 
+import qualified XMonad.Layout.BoringWindows as BW
+
+
 import XMonad.Util.Run(spawnPipe)
 import XMonad.Util.SpawnOnce
 import XMonad.Util.EZConfig(additionalKeys)
@@ -45,6 +51,9 @@ import XMonad.Util.NamedScratchpad
 import Graphics.X11.ExtraTypes.XF86
 import qualified XMonad.StackSet as W
 import qualified Data.Map        as M
+
+
+import XMonad.Layout.Hidden
 
 
 ----------------------------mupdf--------------------------------------------
@@ -161,18 +170,21 @@ addSpace     = renamed [CutWordsLeft 2] . spacing gap
 --                $  (tabbedBottomAlways shrinkText myTabTheme)
 --               -- $ tabBar shrinkText myTabTheme Bottom (gaps [(D, 18)] $ Tall 1 0.03 0.5))
 tab          =  avoidStruts
-               $ renamed [Replace "[T]"]
-               $ myGaps
-               $ tabbedBottomAlways shrinkText myTabTheme
+           $ renamed [Replace "[T]"]
+           $ minimize . BW.boringWindows
+           $ myGaps
+           $ tabbedBottomAlways shrinkText myTabTheme
 
 addTopBar =  noFrillsDeco shrinkText topBarTheme
 
 myTall = renamed [Replace "Tall"]
+          $ minimize . BW.boringWindows
           $ addTopBar
           -- $ tabBar shrinkText myTabTheme Bottom (gaps[(D, 18)] $ (Tall 1 (3/100) (1/2)))
           $ addSpace(ResizableTall 1 (3/100) (1/2) [])
 
 myBSP = renamed [CutWordsLeft 1]
+          $ minimize . BW.boringWindows
           $ addTopBar
           $ windowNavigation
           $ renamed [Replace "BSP"]
@@ -182,11 +194,13 @@ myBSP = renamed [CutWordsLeft 1]
           $ addSpace (BSP.emptyBSP)
 
 my3C = renamed [Replace "3C"]
+      $ minimize . BW.boringWindows
       $ addTopBar
       $ windowNavigation
       $ addSpace (ThreeCol 1 (3/100) (1/2))
 
 myGrid = renamed [Replace "Grid"]
+      $ minimize . BW.boringWindows
       $ addTopBar
       $ addSpace
       $ windowNavigation
@@ -197,7 +211,7 @@ myGrid = renamed [Replace "Grid"]
 --       $ addSpace
 --       $ mouseResizableTile {draggerType = BordersDragger}
 
-layouts      =  tab ||| avoidStruts(myTall ||| my3C ||| myGrid ||| myBSP)
+layouts      =  (tab ||| avoidStruts(myTall ||| my3C ||| myGrid ||| myBSP))
 -- 
 -- layouts      = avoidStruts (
 --                 (
@@ -248,6 +262,10 @@ myBorderWidth = 0
 
 myNormalBorderColor     = color8
 myFocusedBorderColor    = color4
+
+
+windowCount :: X (Maybe String)
+windowCount = (gets $ Just . show . length . W.integrate' . W.stack . W.workspace . W.current . windowset)
 
 base03  = "#002b36"
 base02  = "#073642"
@@ -437,16 +455,22 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
      refresh)
 
   -- Move focus to the next window.
+  -- , ((modMask, xK_j),
+     -- windows BW.focusDown)
+
   , ((modMask, xK_j),
-     windows W.focusDown)
-
+     BW.focusDown)
   -- Move focus to the previous window.
+  -- , ((modMask, xK_k),
+     -- windows BW.focusUp  )
+     --
   , ((modMask, xK_k),
-     windows W.focusUp  )
-
+     BW.focusUp  )
   -- Move focus to the master window.
+  -- , ((modMask, xK_m),
+     -- windows BW.focusMaster  )
   , ((modMask, xK_m),
-     windows W.focusMaster  )
+     BW.focusMaster  )
 
   -- Swap the focused window and the master window.
   , ((modMask, xK_Return),
@@ -555,6 +579,13 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
   ((altMask, xK_space    ), spawn "~/.scripts/rofi-search.sh")
   ]
 
+  ++
+  [
+
+   ((modMask, xK_m), withFocused minimizeWindow)
+   , ((modMask .|. shiftMask, xK_m), withLastMinimized maximizeWindowAndFocus)
+  ]
+
 ------------------------------------------------------------------------
 -- Mouse bindings
 --
@@ -630,14 +661,17 @@ main = do
                  -- Visible but not current workspace (Xinerama only)
                 , ppVisible = xmobarColor color4 "" .wrap ("<box type=Full color=" ++ background ++ ">")  " </box>"
                  -- Hidden workspaces in xmobar
-                , ppHidden = xmobarColor color4  "" .wrap ("<box type=Full color=" ++ background ++ ">")  " </box>"
-                , ppSep = ""
-               , ppLayout = xmobarColor background color2 .wrap ("<action=xdotool key super+alt+space><box type=Full color=" ++ color2 ++ "><fn=1> ") " </fn></box></action>"
+                , ppSep = " "
+                , ppHidden = xmobarColor color4  "" .wrap ("<box type=full color=" ++ background ++ ">")  " </box>"
+                , ppLayout = xmobarColor background color2 .wrap ("<action=xdotool key super+alt+space><box type=Full color=" ++ color2 ++ "><fn=1> ") " </fn></box></action>" 
+                , ppExtras =  [windowCount] 
                 , ppTitle = xmobarColor color2 "" . wrap ("<fn=2> ")  " </fn>"
                 , ppOutput = hPutStrLn xmproc
+                 , ppOrder  = \(ws:l:t:ex) -> [ws]++ ex++[l,t]                    -- order of things in xmobar
+                } 
          }
          -- >> updatePointer (0.75, 0.75) (0.75, 0.75)
-      }
+      
 
 
 ------------------------------------------------------------------------
