@@ -494,6 +494,10 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
   , ((modMask, xK_l),
      sendMessage Expand)
 
+
+    , ((modMask,               xK_a), sendMessage MirrorShrink)
+    , ((modMask,               xK_z), sendMessage MirrorExpand)
+
   -- Push window back into tiling.
   , ((modMask, xK_Delete),
      withFocused $ windows . W.sink)
@@ -665,6 +669,7 @@ main = do
                 , ppHidden = xmobarColor color4  "" .wrap ("<box type=full color=" ++ background ++ ">")  " </box>"
                 , ppLayout = xmobarColor background color2 .wrap ("<action=xdotool key super+alt+space><box type=Full color=" ++ color2 ++ "><fn=1> ") " </fn></box></action>" 
                 , ppExtras =  [windowCount] 
+                -- , ppExtras = xmobarColor color4  "" .wrap ("<box type=full color=" ++ background ++ ">")  " </box>"
                 , ppTitle = xmobarColor color2 "" . wrap ("<fn=2> ")  " </fn>"
                 , ppOutput = hPutStrLn xmproc
                  , ppOrder  = \(ws:l:t:ex) -> [ws]++ ex++[l,t]                    -- order of things in xmobar
